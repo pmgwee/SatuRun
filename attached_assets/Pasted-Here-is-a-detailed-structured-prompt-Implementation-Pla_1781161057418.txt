@@ -1,0 +1,288 @@
+Here is a detailed, structured prompt ("Implementation Plan Blueprint") designed
+for Replit AI or any advanced coding agent. It contains precise technical
+specifications, directory layouts, design system variables, and state
+definitions to build a high-fidelity mobile-first Web MVP.
+
+Implementation Plan & Blueprint: "PACE" - The Luxury Running Community Platform (MVP)
+
+Copy and paste the blueprint below directly into Replit AI or your preferred
+coding assistant to generate the entire high-fidelity frontend MVP.
+
+# SYSTEM PROMPT: High-Fidelity Next.js MVP Generator
+# ROLE: Senior Creative Developer & Principal Full-Stack Engineer
+# OBJECTIVE: Build "PACE" — a high-fidelity, mobile-first Web App MVP modeled after Airbnb's elegant UI and Eventbrite's discovery features. The app is tailored to Malaysia's trending running club culture, connecting runners within local housing areas (e.g., TTDI, Mont Kiara, SS2, Desa ParkCity) and integrating local brands (ZUS Coffee) and influencers (Perry Kuan / CEO Sports Club).
+
+---
+
+## 1. TECH STACK & ARCHITECTURE
+
+- **Framework**: Next.js 14 (App Router, Static/Client-focused MVP)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animation**: Framer Motion
+- **Icons**: lucide-react
+- **Smooth Scroll**: @studio-freight/lenis (or custom Lenis integration for scroll smoothing)
+- **Map Visualizer**: Interactive SVG-based/Canvas Map or lightweight Leaflet.js wrapper to show local running events seamlessly inside Replit without breaking on heavy API keys.
+- **State Management**: React Context (`AppContext`) to maintain state sync (saving runs, joining runs, updating leaderboards, and creating events) across all 5 bottom navigation tabs.
+
+---
+
+## 2. DESIGN TOKENS & UX/UI DESIGN SYSTEM
+
+- **Layout**: Strictly Mobile-First Aspect Ratio viewport (centered with a subtle border on desktop screens, sleek bottom navigation bar resembling iOS/Android native apps).
+- **Background**: Deep Charcoal & Black `#050505` to `#121212`
+- **Primary Text**: High-contrast pure white `#FFFFFF`
+- **Secondary/Muted Text**: Metallic silver/gray `#8E8E93`
+- **Accent Color (Electric Running Track)**: Neon Volt Green `#CCFF00` or Energizing Orange `#FF5A5F` (used sparingly for active states, badges, and primary call-to-actions).
+- **Typography**: Inter or Geist, wide letter-spacing (`tracking-wide` / `tracking-wider`), ultra-clean typography.
+- **Visual Feel**: Minimalist luxury, soft glassmorphism (`backdrop-blur-md bg-white/5 border border-white/10`), ultra-smooth micro-interactions via Framer Motion.
+
+---
+
+## 3. FILE SYSTEM & DIRECTORY TREE
+
+```text
+/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx         # Global fonts, Lenis setup, and AppProvider wrap
+│   │   ├── page.tsx           # Mobile shell containing the Tab Engine
+│   │   └── globals.css        # Custom scrollbar, Tailwind layers, luxury styles
+│   ├── context/
+│   │   └── AppContext.tsx     # Holds shared state (events, saved, joined, user)
+│   ├── components/
+│   │   ├── BottomNav.tsx      # Smooth active-state Framer Motion nav bar (5 Tabs)
+│   │   ├── tabs/
+│   │   │   ├── TabDiscover.tsx    # Tab 1: Map/Location search, event cards
+│   │   │   ├── TabSaved.tsx       # Tab 2: Saved/Wishlisted running events
+│   │   │   ├── TabMyRuns.tsx      # Tab 3: Upcoming / Past event history & tickets
+│   │   │   ├── TabLeaderboard.tsx # Tab 4: Top trending events/organizers ranking
+│   │   │   └── TabProfile.tsx     # Tab 5: Profile dashboard & Event Creator Form
+│   │   └── ui/
+│   │       ├── Card.tsx           # Luxury event card design
+│   │       ├── MapMock.tsx        # Interactive high-fidelity simulated 2D map
+│   │       └── GlowButton.tsx     # Premium pulsing CTA button
+│   ├── hooks/
+│   │   └── useImagePreloader.ts # Custom asset/background precaching hook
+│   └── data/
+│       └── mockData.ts        # Pre-configured premium Malaysian event & organizer datasets
+
+4. DETAILED TAB SPECIFICATIONS & CORE FEATURES (THE 5-TAB MOBILE EXPERIENCE (AIRBNB UX CLONE))
+
+MAIN LAYOUT & VIEWPORT FRAME (MobileFrame.tsx)
+Detect the user's viewport.
+If desktop: Render a sleek 412x892 (simulated screen size) centered iPhone/Android mockup complete with thin borders, status bar (wifi, time, battery icons), and a subtle drop-shadow.
+If mobile: Span 100% of the screen seamlessly.
+Implement Lenis smooth scroll within the scrollable content area of the frame.
+
+Tab 1: Discover & Map (Discover Local Runs)
+
+  - Location Detection: Dynamic location picker simulating key Malaysian premium
+    residential zones: "Mont Kiara Striders Zone", "TTDI Park Base", "Desa
+    ParkCity Loop", "SS2 Petaling Jaya".
+  - Visuals: Render an interactive dark-themed map (utilize dynamic Leaflet loading via react-leaflet with dark CartoDB tiles, or build a highly-polished interactive custom SVG map centered on Kuala Lumpur, Mont Kiara, and Bangsar as a robust fallback to avoid external API token breaks).
+-  Map Render: To prevent build breaks during Next.js SSR build phases, dynamically import a React-Leaflet component (or write a highly customizable, beautiful SVG coordinate grid map styled to match the dark luxury #050505 vibe with active plotting nodes).
+  - Interactive Pins: Clicking a pin reveals an Event Preview Card sliding up
+    from the bottom with details, distance, and "Quick Join" button.
+  - Filter Chips: Filter by Distance (3KM, 5KM, 10KM) or Pace (Easy, Tempo,
+    Interval).
+  - Functionality:
+1) Dynamic user localization (Mock or actual GeoIP detection centering around KL).
+2) Search input ("Search neighborhoods: TTDI, KLCC, Bangsar...").
+3) Category filters at the top: "Morning Pace", "Night Trails", "Beginner Friendly", "Community Run".
+4) Map markers representing ongoing runs & Pin Click Action. Clicking a marker slides up a Framer Motion BottomSheet with run information, route length (e.g., 5KM, 10KM), and a "Join Run" call-to-action.
+5) Bottom Sheet Details: Shows run name, organizer with verified badge, date/time, registered counts (e.g., "42 joined"), and a "Join Event" action button.
+
+Tab 2: Saved (Wishlist Hub)
+
+  - Dynamic List: Shows all events bookmarked by the user.
+  - UI Aesthetic: Grid or list layout of clean luxury cards with dynamic Framer
+    Motion exit animations when an item is unsaved.
+  - Micro-interactions: Pull-to-refresh simulation and heart pulse-animations.
+
+Tab 3: My Runs (Joined Events & Scheduled Routines)
+
+- Split-panel view toggling between "Upcoming" and "Past" events.
+- Upcoming Panel: Show next run countdown timer, route path metadata, and an interactive "Voucher Code" icon if organized by sponsors (like ZUS Coffee). Include a digital mock "Check-in QR Code" modal for check-in on event day.
+- Past Panel: Show history of joined runs, total kilometers completed on the platform, and achievements unlocked.
+
+Tab 4: Leaderboard & Rankings (The Trending Hub)
+  - High-fidelity lists highlighting active participation rates:
+  - Top Organizers: Rank running clubs based on active weekly/monthly
+    participants. (Include visual indicators for "Verified Badge", total
+    runners, and trend directions like +24% growth).
+1) Top Trending Organizers (Past Week/Month/Year): Ranking of groups. Specifically feature certified badges for local brands like "ZUS Coffee Runners" and local running organizers such as "ceosportsclub (Perry Kuan)". Include runner counts (e.g., "1,240 Runners Active This Month").
+  - Top Events: Dynamic leaderboard for current week's trending runs.
+2) Top Trending Specific Events: Detail current high-attendance runs (e.g., "KLCC Sunrise Chase", "Bangsar Hills Escalation").
+  - Visuals: Gold, Silver, and Bronze neon accent rings around host avatars, running club stats, and dynamic charts/progress meters.
+3) Include interactive "Follow" buttons with status indicators & Features clear, high-contrast visual indicators for rank position (1st, 2nd, 3rd) and a "Follow" toggle for keeping up with the organizers' next updates.
+
+
+Tab 5: Organizer Profile & Event Creator Form
+
+  - User Dashboard: Displays personalized stats (e.g., Runs Hosted, Total
+    Runners, Verified Badge). Shows verification status for regular runners,
+    store sellers (ZUS Coffee), or influencers (Perry Kuan / CEO Sports Club).
+  Features:
+- Organizer Profile: View total runs organized, active followers, and participant feedback scores.
+- Create Run Event Flow: Multi-step wizard inside a bottom modal or drawer:
+"Organize a Run" Form Modal:
+Step 1: Run Title, Description, and Date/Time.
+Step 2: Choose Target Route/Location (Bangsar Hills, KLCC, Kiara Hill) and Distance (e.g., 5KM, 10KM, Half-Marathon).
+Step 3 (Sponsor Integration): Let verified organizers select an available brand sponsorship reward (e.g., "Attach ZUS Coffee Voucher: Yes/No") to incentivize turnout.
+Step 4: Submit. This action instantly adds the custom event into the global list, plotting it onto Tab 1's interactive map and listing it on the platform.
+
+TAB NAVIGATION BAR (TabNavigation.tsx)
+Fixed bottom navbar aligned to the bottom of the MobileFrame.
+5 navigation icons with accompanying text:
+- Discover (Map/Pin icon)
+- Saved (Heart icon)
+- My Runs (Calendar/Ticket icon)
+- Trending (Trophy/Trending Up icon)
+- Organizer (User/Plus Circle icon)
+Dynamic spring scaling or active neon underline animations via Framer Motion when switching tabs.
+
+
+5. MOCK DATASETS & LUXURY COPY (Malaysian Hype Context)
+
+Generate rich mock data structures inside src/data/mockData.ts to populate the
+MVP interface on first load. Ensure copy sounds professional and highly
+relevant:
+
+- Event Details organized by each organizers:
+  - Perry Kuan (CEO Sports Club): "Sleek Thursday Night Elite Tempo Run at
+    TTDI. 7KM. Pace: 5:30. Post-run networking and exclusive CEO Sports Club
+    gear drop."
+  - ZUS Coffee Recovery Run: "Mont Kiara 5KM Easy Social Run. Pace: 6:30. Every
+    participant receives an in-app 1-for-1 ZUS Iced Spanish Latte Voucher."
+  - Desa ParkCity Sunset Loop: "Hosted by DPC Striders. 10KM Sunset Cruise.
+    Pace: 5:00. Scenic waterfront loops with hydration partners."
+
+- Organizers:
+      - ceosportsclub (Perry Kuan) — Verified Social Media Influencer.
+      - ZUS Coffee Run Club — Verified Brand Partner (Offers free Lychee
+        Americano or Iced Spanish Latte voucher upon completion).
+      - Bangsar Athletic Group — Verified Community Organizer.
+  - Locations / Coordinates (KL/Selangor Area):
+      - KLCC Park Loop (5KM, beginner-friendly flat terrain).
+      - Kiara Hill Trail (8KM, steep technical dirt paths).
+      - TTDI Park Sunset Pace (6KM, family/casual friendly).
+      - Bangsar Heights Escalations (10KM, hilly road route).
+
+6. CODE TEMPLATE BLUEPRINTS TO INJECT
+
+To ensure structural consistency, follow the exact pattern below for the Shared
+App Context and Bottom Navigation Layout:
+
+State Management (src/context/AppContext.tsx)
+
+import React, { createContext, useContext, useState } from 'react';
+
+export interface RunningEvent {
+  id: string;
+  title: string;
+  organizer: string;
+  organizerAvatar: string;
+  isVerified: boolean;
+  location: string;
+  coordinates: { x: number; y: number };
+  distance: string;
+  pace: string;
+  date: string;
+  time: string;
+  participantsCount: number;
+  maxParticipants: number;
+  image: string;
+  hasVoucher?: boolean;
+  voucherDescription?: string;
+}
+
+interface AppContextType {
+  events: RunningEvent[];
+  savedEventIds: string[];
+  joinedEventIds: string[];
+  userProfile: {
+    name: string;
+    role: string;
+    avatar: string;
+    isVerified: boolean;
+    runsHosted: number;
+    totalRunners: number;
+  };
+  addEvent: (event: RunningEvent) => void;
+  toggleSaveEvent: (id: string) => void;
+  toggleJoinEvent: (id: string) => void;
+}
+
+// Implement context logic, initial state containing realistic Malaysian data, 
+// and dynamic updater functions to power the MVP.
+
+Main Tab Shell Controller (src/app/page.tsx)
+
+"use client";
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import BottomNav from '@/components/BottomNav';
+import TabDiscover from '@/components/tabs/TabDiscover';
+import TabSaved from '@/components/tabs/TabSaved';
+import TabMyRuns from '@/components/tabs/TabMyRuns';
+import TabLeaderboard from '@/components/tabs/TabLeaderboard';
+import TabProfile from '@/components/tabs/TabProfile';
+
+export default function Home() {
+  const [activeTab, setActiveTab] = useState(1);
+
+  return (
+    <main className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden bg-[#050505] text-white border-x border-white/10 shadow-2xl flex flex-col">
+      <div className="flex-1 overflow-y-auto pb-24 scrollbar-none">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            {activeTab === 1 && <TabDiscover />}
+            {activeTab === 2 && <TabSaved />}
+            {activeTab === 3 && <TabMyRuns />}
+            {activeTab === 4 && <TabLeaderboard />}
+            {activeTab === 5 && <TabProfile />}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+    </main>
+  );
+}
+
+7. STEP-BY-STEP DEVELOPMENT PATHWAY FOR REPLIT AI
+
+1.  Step 1: Project Setup & Packages: Clean up existing packages. Install
+    framer-motion, lucide-react, and @studio-freight/lenis.
+2.  Step 2: Globals & Styles: Configure Tailwind CSS in src/app/globals.css.
+    Inject gradient mesh configurations and high-fidelity custom utility classes
+    for absolute zero scrollbar footprints (scrollbar-none).
+3.  Step 3: State & Mock Data: Code src/context/AppContext.tsx and
+    src/data/mockData.ts to ensure dynamic operations work instantly.
+4.  Step 4: Layout and BottomNav Shell: Build BottomNav.tsx using Framer Motion
+    layout animations (such as an underlay bubble pill sliding behind icons as
+    tabs switch).
+5.  Step 5: Modular Feature Tabs Development: Build out individual tab
+    components, maintaining high premium visual fidelity across map elements,
+    rankings charts, customized ticket designs, and input validation fields.
+6.  Step 6: Refinement & Micro-interactions: Add spring animations to active
+    clicks, subtle glow filters for the dark-mode aesthetic, and polish states
+    for interactive voucher claims.
+
+BUILD AND EXECUTION INSTRUCTIONS
+TypeScript Safety: Strictly define interfaces for all data structures (e.g., Event, Organizer, User).
+Animation Feel: Keep transitions snappier rather than slow. Keep Framer Motion duration times around 0.2s - 0.3s with easeOut or dynamic spring configurations to give a native mobile app response speed.
+No Build Warnings: Build cleanly in Next.js 14, taking care to place any window-accessing code or third-party leaflet styles inside safe useEffect hooks or dynamically imported client-only wrappers.
+
+Now, construct and deliver this high-fidelity, polished, clean application
+matching all technical parameters. Ensure the workspace remains error-free,
+utilizing robust mock systems to avoid relying on external backends or map key
+installations.
+
