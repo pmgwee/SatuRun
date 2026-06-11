@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "PACE",
-    "slug": "mobile",
+    "name": "SatuRun",
+    "slug": "saturun",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "saturun",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,10 +15,12 @@
     },
     "ios": {
       "supportsTablet": false,
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "bundleIdentifier": "com.saturun.app"
     },
     "android": {
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "package": "com.saturun.app"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
