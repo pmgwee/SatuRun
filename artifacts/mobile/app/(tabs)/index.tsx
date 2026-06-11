@@ -11,12 +11,15 @@ import { useColors } from '@/hooks/useColors';
 
 const FILTERS = ['All', 'Morning Pace', 'Night Trails', 'Beginner Friendly', 'Community Run', 'Elite'];
 
+interface SelectedArea { events: RunningEvent[]; neighborhood: string }
+
 export default function DiscoverScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { events } = useApp();
   const [activeFilter, setActiveFilter] = useState('All');
-  const [selectedEvent, setSelectedEvent] = useState<RunningEvent | null>(null);
+  const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
+  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   const filteredEvents = useMemo(() => {
@@ -31,9 +34,21 @@ export default function DiscoverScreen() {
     });
   }, [events, activeFilter]);
 
+  const handleAreaPress = (areaEvents: RunningEvent[], neighborhood: string) => {
+    setSelectedArea({ events: areaEvents, neighborhood });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: topPad + 8, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+      {/* Header — compact, no extra gaps */}
+      <View style={[
+        styles.header,
+        {
+          paddingTop: topPad + 6,
+          borderBottomColor: colors.border,
+          backgroundColor: colors.background,
+        },
+      ]}>
         <View style={styles.locationRow}>
           <View>
             <Text style={[styles.locationLabel, { color: colors.mutedForeground }]}>Location</Text>
@@ -54,19 +69,50 @@ export default function DiscoverScreen() {
         </View>
       </View>
 
-      <FilterChips filters={FILTERS} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+      {/* Map fills all remaining space */}
+      <View
+        style={{ flex: 1, position: 'relative' }}
+        onLayout={e => {
+          const { width, height } = e.nativeEvent.layout;
+          if (width > 10 && height > 10) {
+            setMapSize({ width, height });
+          }
+        }}
+      >
+        {mapSize.width > 0 && (
+          <MapCanvas
+            events={filteredEvents}
+            onAreaPress={handleAreaPress}
+            canvasWidth={mapSize.width}
+            canvasHeight={mapSize.height}
+          />
+        )}
 
-      <View style={{ flex: 1, position: 'relative' }}>
-        <MapCanvas events={filteredEvents} onEventPress={setSelectedEvent} />
+        {/* Filter chips float on top of map */}
+        <View style={styles.filterOverlay} pointerEvents="box-none">
+          <FilterChips
+            filters={FILTERS}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+          />
+        </View>
 
+        {/* Count pill floats at bottom of filter strip */}
         <View style={[styles.countPill, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <View style={[styles.countDot, { backgroundColor: colors.primary }]} />
           <Text style={[styles.countText, { color: colors.foreground }]}>
-            <Text style={{ color: colors.primary, fontWeight: '700' }}>{filteredEvents.length}</Text> runs near you
+            <Text style={{ color: colors.primary, fontWeight: '700' }}>{filteredEvents.length}</Text>
+            {' '}runs near you
           </Text>
         </View>
 
-        <EventBottomSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        {selectedArea && (
+          <EventBottomSheet
+            events={selectedArea.events}
+            neighborhood={selectedArea.neighborhood}
+            onClose={() => setSelectedArea(null)}
+          />
+        )}
       </View>
     </View>
   );
@@ -76,7 +122,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingBottom: 8, borderBottomWidth: 1 },
   locationRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  locationLabel: { fontSize: 11, marginBottom: 4, letterSpacing: 0.4 },
+  locationLabel: { fontSize: 11, marginBottom: 3, letterSpacing: 0.4 },
   locationBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   locationText: { fontSize: 18, fontWeight: '700' },
   headerActions: { flexDirection: 'row', gap: 8 },
@@ -84,9 +130,16 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },
+  filterOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 5,
+  },
   countPill: {
     position: 'absolute',
-    top: 12,
+    top: 54,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,7 +149,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     left: '50%',
-    marginLeft: -75,
+    marginLeft: -72,
+    zIndex: 5,
   },
   countDot: { width: 6, height: 6, borderRadius: 3 },
   countText: { fontSize: 13 },
