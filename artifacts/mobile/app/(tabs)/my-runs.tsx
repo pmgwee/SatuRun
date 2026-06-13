@@ -1,12 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { QRModal } from '@/components/QRModal';
+import { EventCard } from '@/components/EventCard';
 import { useApp } from '@/context/AppContext';
-import { ACHIEVEMENTS, CATEGORY_GRADIENTS, PAST_RUNS, RunningEvent } from '@/data/mockData';
+import { ACHIEVEMENTS, CATEGORY_GRADIENTS, PAST_RUNS } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
+import type { StravaRun } from '@/types/strava';
 
 interface CountdownValues { d: number; h: number; m: number }
 
@@ -47,42 +48,133 @@ function Countdown({ date, time }: { date: string; time: string }) {
   );
 }
 
+/** Unified run item for the Past tab history list. */
+interface PastRunItem {
+  id: string;
+  title: string;
+  location: string;
+  date: string;
+  distanceKm: number;
+  source: 'pace' | 'strava';
+}
+
+type Tab = 'saved' | 'upcoming' | 'past';
+
 export default function MyRunsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { events, joinedEventIds } = useApp();
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
-  const [qrEvent, setQrEvent] = useState<RunningEvent | null>(null);
+  const { events, savedEventIds, joinedEventIds, stravaRuns } = useApp();
+  const [tab, setTab] = useState<Tab>('upcoming');
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   const now = Date.now();
+  const savedEvents = events.filter(e => savedEventIds.includes(e.id));
   const joinedEvents = events.filter(e => joinedEventIds.includes(e.id));
   const upcoming = joinedEvents.filter(e => new Date(`${e.date}T${e.time}:00`).getTime() > now);
   const pastJoined = joinedEvents.filter(e => new Date(`${e.date}T${e.time}:00`).getTime() <= now);
+
+  // ── Past tab data (combined PACE + Strava) ────────────────
   const totalKm = PAST_RUNS.reduce((s, r) => s + r.distanceKm, 0)
-    + pastJoined.reduce((s, e) => s + parseInt(e.distance), 0);
+    + pastJoined.reduce((s, e) => s + parseInt(e.distance), 0)
+    + stravaRuns.reduce((s, r) => s + r.distanceKm, 0);
+
+  const totalRuns = PAST_RUNS.length + pastJoined.length + stravaRuns.length;
+
+  // Build a unified history list sorted by date descending
+  const allPastRuns: PastRunItem[] = [
+    ...PAST_RUNS.map(r => ({
+      id: r.id,
+      title: r.title,
+      location: r.location,
+      date: r.date,
+      distanceKm: r.distanceKm,
+      source: 'pace' as const,
+    })),
+    ...pastJoined.map(e => ({
+      id: `joined_${e.id}`,
+      title: e.title,
+      location: e.location,
+      date: e.date,
+      distanceKm: parseInt(e.distance) || 0,
+      source: 'pace' as const,
+    })),
+    ...stravaRuns.map((r: StravaRun) => ({
+      id: r.id,
+      title: r.title,
+      location: r.location || '—',
+      date: r.startDate.split('T')[0],
+      distanceKm: r.distanceKm,
+      source: 'strava' as const,
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // ── Dynamic achievements (computed from all run data) ──────
+  const allDistances = [...PAST_RUNS.map(r => r.distanceKm), ...stravaRuns.map(r => r.distanceKm)];
+  const computedAchievements = ACHIEVEMENTS.map(a => {
+    switch (a.id) {
+      case 'first-run':
+        return { ...a, unlocked: totalRuns > 0 };
+      case '5km':
+        return { ...a, unlocked: allDistances.some(d => d >= 5) };
+      case '10km':
+        return { ...a, unlocked: allDistances.some(d => d >= 10) };
+      case 'social':
+        return { ...a, unlocked: joinedEventIds.length >= 5 };
+      case 'night-owl':
+        // Check if any past run or upcoming event is a Night category
+        return { ...a, unlocked: events.some(e => e.category === 'Night' && joinedEventIds.includes(e.id)) };
+      default:
+        return a;
+    }
+  });
+
+  const tabs: { key: Tab; label: string; count: number }[] = [
+    { key: 'saved', label: 'Saved', count: savedEvents.length },
+    { key: 'upcoming', label: 'Upcoming', count: upcoming.length },
+    { key: 'past', label: 'Past', count: totalRuns },
+  ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.foreground }]}>My Runs</Text>
         <View style={[styles.toggle, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {(['upcoming', 'past'] as const).map(t => (
+          {tabs.map(t => (
             <TouchableOpacity
-              key={t}
-              onPress={() => setTab(t)}
-              style={[styles.toggleBtn, tab === t && { backgroundColor: colors.primary }]}
+              key={t.key}
+              onPress={() => setTab(t.key)}
+              style={[styles.toggleBtn, tab === t.key && { backgroundColor: colors.primary }]}
             >
-              <Text style={[styles.toggleText, { color: tab === t ? colors.primaryForeground : colors.mutedForeground }]}>
-                {t === 'upcoming' ? 'Upcoming' : 'Past'}
+              <Text style={[styles.toggleText, { color: tab === t.key ? colors.primaryForeground : colors.mutedForeground }]}>
+                {t.label}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}>
-        {tab === 'upcoming' ? (
+      {tab === 'saved' ? (
+        savedEvents.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <Feather name="heart" size={28} color={colors.mutedForeground} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No saved runs yet</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              Tap the heart icon on any event in Discover to save it here
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={savedEvents}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => <EventCard event={item} />}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 90 }]}
+            showsVerticalScrollIndicator={false}
+          />
+        )
+      ) : tab === 'upcoming' ? (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}>
           <View style={{ padding: 20 }}>
             {upcoming.length === 0 ? (
               <View style={styles.emptyState}>
@@ -121,33 +213,31 @@ export default function MyRunsScreen() {
                       <Text style={styles.voucherChipText}>Voucher</Text>
                     </View>
                   )}
-                  <TouchableOpacity
-                    onPress={() => setQrEvent(event)}
-                    style={styles.qrBtn}
-                  >
-                    <Feather name="grid" size={13} color="#fff" />
-                    <Text style={styles.qrBtnText}>Check-in QR</Text>
-                  </TouchableOpacity>
                 </View>
               </LinearGradient>
             ))}
           </View>
-        ) : (
+        </ScrollView>
+      ) : (
+        /* ── Past Tab ─────────────────────────────────────────── */
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}>
           <View style={{ padding: 20 }}>
+            {/* Stats */}
             <View style={styles.statsRow}>
               <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.statNum, { color: colors.primary }]}>{totalKm}</Text>
                 <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Total KM</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.statNum, { color: colors.primary }]}>{PAST_RUNS.length + pastJoined.length}</Text>
+                <Text style={[styles.statNum, { color: colors.primary }]}>{totalRuns}</Text>
                 <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Runs Done</Text>
               </View>
             </View>
 
+            {/* Achievements */}
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Achievements</Text>
             <View style={styles.achievementsGrid}>
-              {ACHIEVEMENTS.map(a => (
+              {computedAchievements.map(a => (
                 <View
                   key={a.id}
                   style={[
@@ -166,26 +256,57 @@ export default function MyRunsScreen() {
               ))}
             </View>
 
+            {/* History (combined PACE + Strava) */}
             <Text style={[styles.sectionTitle, { color: colors.foreground }]}>History</Text>
-            {PAST_RUNS.map(r => (
+            {allPastRuns.map(r => (
               <View key={r.id} style={[styles.pastRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <View style={[styles.pastIcon, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
-                  <Feather name="activity" size={16} color={colors.primary} />
+                <View
+                  style={[
+                    styles.pastIcon,
+                    r.source === 'strava'
+                      ? { backgroundColor: 'rgba(252,76,2,0.1)' }
+                      : { backgroundColor: 'rgba(204,255,0,0.08)' },
+                  ]}
+                >
+                  <Feather
+                    name={r.source === 'strava' ? 'activity' : 'flag'}
+                    size={16}
+                    color={r.source === 'strava' ? '#FC4C02' : colors.primary}
+                  />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.pastTitle, { color: colors.foreground }]}>{r.title}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                    <Text style={[styles.pastTitle, { color: colors.foreground }]}>{r.title}</Text>
+                    {r.source === 'strava' && (
+                      <View style={styles.stravaSourceChip}>
+                        <Text style={styles.stravaSourceText}>STRAVA</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={[styles.pastMeta, { color: colors.mutedForeground }]}>{r.location} · {r.date}</Text>
                 </View>
-                <View style={[styles.pastDist, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
-                  <Text style={[styles.pastDistText, { color: colors.primary }]}>{r.distanceKm}KM</Text>
+                <View
+                  style={[
+                    styles.pastDist,
+                    r.source === 'strava'
+                      ? { backgroundColor: 'rgba(252,76,2,0.1)' }
+                      : { backgroundColor: 'rgba(204,255,0,0.08)' },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.pastDistText,
+                      { color: r.source === 'strava' ? '#FC4C02' : colors.primary },
+                    ]}
+                  >
+                    {r.distanceKm}KM
+                  </Text>
                 </View>
               </View>
             ))}
           </View>
-        )}
-      </ScrollView>
-
-      <QRModal event={qrEvent} visible={!!qrEvent} onClose={() => setQrEvent(null)} />
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -196,8 +317,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700' },
   toggle: { flexDirection: 'row', borderRadius: 10, padding: 3, borderWidth: 1 },
   toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  toggleText: { fontSize: 13, fontWeight: '600' },
-  emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
+  toggleText: { fontSize: 12, fontWeight: '600' },
+  listContent: { padding: 20 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60, gap: 12 },
   emptyIcon: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyText: { fontSize: 14, textAlign: 'center' },
@@ -221,12 +343,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(204,255,0,0.3)', backgroundColor: 'rgba(204,255,0,0.08)',
   },
   voucherChipText: { color: '#CCFF00', fontSize: 11, fontWeight: '500' },
-  qrBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.10)',
-  },
-  qrBtnText: { color: '#fff', fontSize: 12, fontWeight: '500' },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   statBox: { flex: 1, borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 4 },
   statNum: { fontSize: 28, fontWeight: '700' },
@@ -237,8 +353,14 @@ const styles = StyleSheet.create({
   achievementTitle: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
   pastRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
   pastIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  pastTitle: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
+  pastTitle: { fontSize: 13, fontWeight: '600' },
   pastMeta: { fontSize: 11 },
   pastDist: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
   pastDistText: { fontSize: 12, fontWeight: '700' },
+  // Strava-specific styles
+  stravaSourceChip: {
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
+    backgroundColor: 'rgba(252,76,2,0.12)',
+  },
+  stravaSourceText: { fontSize: 8, fontWeight: '700', color: '#FC4C02', letterSpacing: 0.6 },
 });

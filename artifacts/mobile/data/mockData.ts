@@ -1,3 +1,5 @@
+import type { StravaRun } from '@/types/strava';
+
 export type EventCategory = 'Tempo' | 'Easy' | 'Trail' | 'Interval' | 'Night' | 'Community';
 
 export interface RunningEvent {
@@ -453,6 +455,56 @@ export const INITIAL_EVENTS: RunningEvent[] = [
     hasVoucher: false,
     tags: ['Technical', 'Dirt Paths'],
   },
+
+  // ── Bangsar — BigPharmacy Run ──────────────────────────────────
+  {
+    id: '16',
+    title: 'BigPharmacy Wellness Run KL',
+    organizer: 'BigPharmacy',
+    organizerHandle: '@bigpharmacy',
+    organizerInitials: 'BP',
+    organizerColor: '#10B981',
+    isVerified: true,
+    location: 'Bangsar Sports Complex',
+    neighborhood: 'Bangsar',
+    coordinates: { x: 160, y: 190 },
+    distance: '5KM',
+    pace: '6:30 /km',
+    category: 'Community',
+    date: '2026-06-22',
+    time: '07:30',
+    displayTime: '7:30 AM',
+    participantsCount: 62,
+    maxParticipants: 100,
+    hasVoucher: true,
+    voucherDescription: 'Free Emergency Starter Pack for all finishers',
+    tags: ['Community', 'Wellness', 'Beginner Friendly'],
+  },
+
+  // ── Mont Kiara — Perry Kuan x ceoSportClub ─────────────────────
+  {
+    id: '17',
+    title: 'ceoSportClub x Perry Kuan Flagship Run',
+    organizer: 'Perry Kuan',
+    organizerHandle: '@ceosportsclub',
+    organizerInitials: 'PK',
+    organizerColor: '#8B5CF6',
+    isVerified: true,
+    location: 'Mont Kiara Boulevard',
+    neighborhood: 'Mont Kiara',
+    coordinates: { x: 122, y: 105 },
+    distance: '7KM',
+    pace: '5:45 /km',
+    category: 'Tempo',
+    date: '2026-06-28',
+    time: '06:30',
+    displayTime: '6:30 AM',
+    participantsCount: 88,
+    maxParticipants: 120,
+    hasVoucher: true,
+    voucherDescription: 'Free ceoSportClub Merchandise Tee for all finishers',
+    tags: ['Morning Pace', 'Merch Drop', 'Community'],
+  },
 ];
 
 export const PAST_RUNS = [
@@ -514,3 +566,52 @@ export const CATEGORY_GRADIENTS: Record<EventCategory, [string, string]> = {
   Night: ['#080814', '#10102A'],
   Community: ['#081018', '#0A1A28'],
 };
+
+// ── Strava mock data (pre-loaded for demo) ────────────────────
+
+export const MOCK_STRAVA_RUNS: StravaRun[] = [
+  {
+    id: 'strava_9012345678',
+    stravaId: 9012345678,
+    title: 'Morning Run',
+    distanceKm: 8.2,
+    durationMinutes: 45,
+    pacePerKm: '5:29 /km',
+    startDate: '2026-06-10T06:15:00Z',
+    location: 'Kuala Lumpur',
+    source: 'strava',
+  },
+  {
+    id: 'strava_9012345679',
+    stravaId: 9012345679,
+    title: 'Lunch Run',
+    distanceKm: 5.1,
+    durationMinutes: 28,
+    pacePerKm: '5:29 /km',
+    startDate: '2026-06-05T12:30:00Z',
+    location: 'Bangsar',
+    source: 'strava',
+  },
+  {
+    id: 'strava_9012345680',
+    stravaId: 9012345680,
+    title: 'Evening Run',
+    distanceKm: 12.3,
+    durationMinutes: 68,
+    pacePerKm: '5:32 /km',
+    startDate: '2026-05-30T18:45:00Z',
+    location: 'KLCC',
+    source: 'strava',
+  },
+  {
+    id: 'strava_9012345681',
+    stravaId: 9012345681,
+    title: 'Weekend Long Run',
+    distanceKm: 15.7,
+    durationMinutes: 87,
+    pacePerKm: '5:33 /km',
+    startDate: '2026-05-24T07:00:00Z',
+    location: 'TTDI',
+    source: 'strava',
+  },
+];

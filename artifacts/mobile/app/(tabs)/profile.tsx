@@ -1,21 +1,24 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CreateRunModal } from '@/components/CreateRunModal';
 import { useApp } from '@/context/AppContext';
 import { PAST_RUNS } from '@/data/mockData';
+import { useStrava } from '@/hooks/useStrava';
 import { useColors } from '@/hooks/useColors';
 
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { userProfile, joinedEventIds, hostedCount, events } = useApp();
+  const { userProfile, joinedEventIds, hostedCount, events, stravaRuns } = useApp();
+  const { connection: stravaConnection, isLoading: stravaLoading, connect, disconnect } = useStrava();
   const [showCreate, setShowCreate] = useState(false);
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
-  const totalKm = PAST_RUNS.reduce((s, r) => s + r.distanceKm, 0);
-  const totalRuns = joinedEventIds.length + PAST_RUNS.length;
+  const totalKm = PAST_RUNS.reduce((s, r) => s + r.distanceKm, 0)
+    + stravaRuns.reduce((s, r) => s + r.distanceKm, 0);
+  const totalRuns = joinedEventIds.length + PAST_RUNS.length + stravaRuns.length;
   const hostedEvents = events.filter(e => e.isUserCreated);
 
   const stats = [
@@ -86,10 +89,85 @@ export default function ProfileScreen() {
             <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
           </TouchableOpacity>
 
+          {/* ── Connected Apps Section ────────────────────────── */}
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Connected Apps</Text>
+
+          {/* Strava */}
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: colors.border }]}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (stravaConnection.isConnected) {
+                Alert.alert(
+                  'Strava',
+                  `Connected as ${stravaConnection.athleteName ?? 'athlete'}.`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Disconnect',
+                      style: 'destructive',
+                      onPress: () => disconnect(),
+                    },
+                  ],
+                );
+              } else {
+                connect();
+              }
+            }}
+            disabled={stravaLoading}
+          >
+            <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(252,76,2,0.12)' }]}>
+              <Feather name="activity" size={16} color="#FC4C02" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: colors.foreground }]}>Strava</Text>
+              <Text style={[styles.settingSublabel, { color: colors.mutedForeground }]}>
+                {stravaConnection.isConnected
+                  ? `${stravaRuns.length} runs imported`
+                  : 'Connect to import your runs'}
+              </Text>
+            </View>
+            {stravaLoading ? (
+              <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading…</Text>
+            ) : stravaConnection.isConnected ? (
+              <View style={styles.connectedBadge}>
+                <Feather name="check-circle" size={11} color="#CCFF00" />
+                <Text style={styles.connectedBadgeText}>Connected</Text>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={[styles.connectText, { color: colors.primary }]}>Connect</Text>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Apple Health */}
+          <TouchableOpacity
+            style={[styles.settingRow, { borderBottomColor: 'transparent' }]}
+            activeOpacity={0.7}
+            onPress={() =>
+              Alert.alert('Coming Soon', 'Apple Health integration will be available in a future update.')
+            }
+          >
+            <View style={[styles.settingIconWrap, { backgroundColor: 'rgba(255,45,85,0.12)' }]}>
+              <Feather name="heart" size={16} color="#FF2D55" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingLabel, { color: colors.foreground, opacity: 0.5 }]}>Apple Health</Text>
+              <Text style={[styles.settingSublabel, { color: colors.mutedForeground, opacity: 0.5 }]}>
+                Sync health & workout data
+              </Text>
+            </View>
+            <View style={styles.comingSoonBadge}>
+              <Text style={styles.comingSoonText}>SOON</Text>
+            </View>
+          </TouchableOpacity>
+
           {/* Hosted events */}
           {hostedEvents.length > 0 && (
             <>
-              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Your Events</Text>
+              <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>Your Events</Text>
               {hostedEvents.map(event => (
                 <View key={event.id} style={[styles.hostedRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <View style={[styles.hostedIcon, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
@@ -164,5 +242,19 @@ const styles = StyleSheet.create({
   participantBadgeText: { fontSize: 13, fontWeight: '700' },
   settingRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 13, borderBottomWidth: 1 },
   settingIconWrap: { width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  settingLabel: { flex: 1, fontSize: 14 },
+  settingLabel: { flex: 0, fontSize: 14 },
+  settingSublabel: { fontSize: 11, marginTop: 2 },
+  connectedBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
+    backgroundColor: 'rgba(204,255,0,0.1)',
+  },
+  connectedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CCFF00' },
+  connectText: { fontSize: 13, fontWeight: '600' },
+  loadingText: { fontSize: 12 },
+  comingSoonBadge: {
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  comingSoonText: { fontSize: 10, fontWeight: '600', color: '#8E8E93', letterSpacing: 0.8 },
 });

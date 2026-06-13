@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventBottomSheet } from '@/components/EventBottomSheet';
 import { FilterChips } from '@/components/FilterChips';
 import { MapCanvas } from '@/components/MapCanvas';
+import { useTheme } from '@/context/ThemeContext';
 import { useApp } from '@/context/AppContext';
 import { RunningEvent } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
@@ -15,6 +16,7 @@ interface SelectedArea { events: RunningEvent[]; neighborhood: string }
 
 export default function DiscoverScreen() {
   const colors = useColors();
+  const { isDark, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
   const { events } = useApp();
   const [activeFilter, setActiveFilter] = useState('All');
@@ -64,6 +66,13 @@ export default function DiscoverScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
               <Feather name="bell" size={18} color={colors.foreground} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+              onPress={toggleTheme}
+              activeOpacity={0.7}
+            >
+              <Feather name={isDark ? 'sun' : 'moon'} size={18} color={colors.foreground} />
             </TouchableOpacity>
           </View>
         </View>

@@ -15,9 +15,9 @@ function NativeTabLayout() {
         <Icon sf={{ default: "map", selected: "map.fill" }} />
         <Label>Discover</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="saved">
-        <Icon sf={{ default: "heart", selected: "heart.fill" }} />
-        <Label>Saved</Label>
+      <NativeTabs.Trigger name="rewards">
+        <Icon sf={{ default: "gift", selected: "gift.fill" }} />
+        <Label>Rewards</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="my-runs">
         <Icon sf={{ default: "calendar", selected: "calendar.fill" }} />
@@ -75,14 +75,14 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="saved"
+        name="rewards"
         options={{
-          title: "Saved",
+          title: "Rewards",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="heart" tintColor={color} size={22} />
+              <SymbolView name="gift" tintColor={color} size={22} />
             ) : (
-              <Feather name="heart" size={20} color={color} />
+              <Feather name="gift" size={20} color={color} />
             ),
         }}
       />
@@ -120,6 +120,14 @@ function ClassicTabLayout() {
             ) : (
               <Feather name="user" size={20} color={color} />
             ),
+        }}
+      />
+      {/* Hide the old saved tab — its content is now in My Runs > Saved */}
+      <Tabs.Screen
+        name="saved"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
         }}
       />
     </Tabs>

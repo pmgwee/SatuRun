@@ -2,9 +2,10 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useApp } from '@/context/AppContext';
 import { CATEGORY_GRADIENTS, RunningEvent } from '@/data/mockData';
+import { PARTNERS } from '@/data/rewardsData';
 import { useColors } from '@/hooks/useColors';
 
 interface EventCardProps {
@@ -42,9 +43,20 @@ export function EventCard({ event, onPress }: EventCardProps) {
           </TouchableOpacity>
         </View>
         <View style={styles.orgRow}>
-          <View style={[styles.orgAvatar, { backgroundColor: event.organizerColor }]}>
-            <Text style={styles.orgInitials}>{event.organizerInitials}</Text>
-          </View>
+          {(() => {
+            const handle = event.organizerHandle.replace('@', '');
+            const partnerLogo = PARTNERS.find(p =>
+              handle === p.handle ||
+              event.organizer === p.name,
+            )?.logoUri;
+            return partnerLogo ? (
+              <Image source={{ uri: partnerLogo }} style={styles.orgLogo} resizeMode="cover" />
+            ) : (
+              <View style={[styles.orgAvatar, { backgroundColor: event.organizerColor }]}>
+                <Text style={styles.orgInitials}>{event.organizerInitials}</Text>
+              </View>
+            );
+          })()}
           <View style={{ flex: 1, marginLeft: 8 }}>
             <View style={styles.orgNameRow}>
               <Text style={styles.orgName} numberOfLines={1}>{event.organizer}</Text>
@@ -116,6 +128,7 @@ const styles = StyleSheet.create({
   categoryText: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', letterSpacing: 1 },
   orgRow: { flexDirection: 'row', alignItems: 'center' },
   orgAvatar: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  orgLogo: { width: 32, height: 32, borderRadius: 16 },
   orgInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
   orgNameRow: { flexDirection: 'row', alignItems: 'center' },
   orgName: { color: '#fff', fontSize: 13, fontWeight: '600' },
