@@ -23,13 +23,13 @@ function NativeTabLayout() {
         <Icon sf={{ default: "gift", selected: "gift.fill" }} />
         <Label>Rewards</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="my-runs">
-        <Icon sf={{ default: "calendar", selected: "calendar.circle.fill" }} />
-        <Label>My Runs</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="leaderboard">
         <Icon sf={{ default: "trophy", selected: "trophy.fill" }} />
         <Label>Trending</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="my-runs">
+        <Icon sf={{ default: "calendar", selected: "calendar.circle.fill" }} />
+        <Label>My Runs</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
@@ -103,18 +103,6 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="my-runs"
-        options={{
-          title: "My Runs",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="calendar" tintColor={color} size={22} />
-            ) : (
-              <Feather name="calendar" size={20} color={color} />
-            ),
-        }}
-      />
-      <Tabs.Screen
         name="leaderboard"
         options={{
           title: "Trending",
@@ -123,6 +111,18 @@ function ClassicTabLayout() {
               <SymbolView name="trophy" tintColor={color} size={22} />
             ) : (
               <Feather name="award" size={20} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="my-runs"
+        options={{
+          title: "My Runs",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="calendar" tintColor={color} size={22} />
+            ) : (
+              <Feather name="calendar" size={20} color={color} />
             ),
         }}
       />
