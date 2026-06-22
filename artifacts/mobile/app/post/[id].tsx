@@ -15,24 +15,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
-import { MediaCarousel } from '@/components/MediaCarousel';
+import { PostDetail, timeAgo } from '@/components/PostDetail';
 import { useApp } from '@/context/AppContext';
 import { useColors } from '@/hooks/useColors';
-import { Image } from 'expo-image';
-
-const STRAVA_LOGO = require('../../assets/strava.png');
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - +new Date(iso);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
+import { handleForAuthorName } from '@/data/communityData';
 
 export default function PostDetailScreen() {
   const colors = useColors();
@@ -47,7 +33,6 @@ export default function PostDetailScreen() {
     () => comments.filter(c => c.postId === id).sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt)),
     [comments, id],
   );
-  const [following, setFollowing] = useState(false);
   const [draft, setDraft] = useState('');
 
   if (!post) {
@@ -65,17 +50,6 @@ export default function PostDetailScreen() {
   const liked = likedPostIds.includes(post.id);
   const saved = savedPostIds.includes(post.id);
 
-  const statCells = post.runStats
-    ? [
-        { label: 'Distance', value: `${post.runStats.distanceKm.toFixed(1)} km` },
-        { label: 'Time', value: post.runStats.durationLabel },
-        { label: 'Pace', value: post.runStats.pace.replace(' /km', '/km') },
-        ...(post.runStats.elevationM != null
-          ? [{ label: 'Elev', value: `${post.runStats.elevationM} m` }]
-          : []),
-      ]
-    : [];
-
   const onLike = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     toggleLikePost(post.id);
@@ -90,94 +64,32 @@ export default function PostDetailScreen() {
     setDraft('');
   };
 
+  const openAuthor = (handle?: string) => {
+    if (!handle) return;
+    router.push({ pathname: '/user/[handle]', params: { handle } });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View>
-          <MediaCarousel media={post.media} width={width} />
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backBtn, { top: insets.top + 8 }]}
-            hitSlop={8}
-          >
-            <Feather name="chevron-left" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.content}>
-          {/* Author */}
-          <View style={styles.authorRow}>
-            <Avatar uri={post.authorAvatar} initials={post.authorInitials} color={post.authorColor} size={40} />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <View style={styles.nameRow}>
-                <Text style={[styles.authorName, { color: colors.foreground }]} numberOfLines={1}>
-                  {post.authorName}
-                </Text>
-                {post.isVerified && <Feather name="check-circle" size={13} color={colors.primary} />}
-              </View>
-              <Text style={[styles.handle, { color: colors.mutedForeground }]}>{post.authorHandle}</Text>
-            </View>
+        <PostDetail
+          post={post}
+          width={width}
+          onOpenAuthor={() => openAuthor(post.authorHandle)}
+          overlay={
             <TouchableOpacity
-              onPress={() => setFollowing(f => !f)}
-              style={[
-                styles.followBtn,
-                {
-                  backgroundColor: following ? 'transparent' : colors.primary,
-                  borderWidth: following ? 1 : 0,
-                  borderColor: colors.primary,
-                },
-              ]}
+              onPress={() => router.back()}
+              style={[styles.backBtn, { top: insets.top + 8 }]}
+              hitSlop={8}
             >
-              <Text style={[styles.followText, { color: following ? colors.primary : colors.primaryForeground }]}>
-                {following ? 'Following' : 'Follow'}
-              </Text>
+              <Feather name="chevron-left" size={24} color="#fff" />
             </TouchableOpacity>
-          </View>
+          }
+        />
 
-          <Text style={[styles.title, { color: colors.foreground }]}>{post.title}</Text>
-          <Text style={[styles.caption, { color: colors.foreground }]}>{post.caption}</Text>
-
-          {post.runStats && (
-            <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={styles.statsHeader}>
-                <Image source={STRAVA_LOGO} style={styles.stravaBadge} contentFit="cover" />
-                <Text style={[styles.statsSource, { color: colors.foreground }]}>
-                  {post.runStats.source} Activity
-                </Text>
-              </View>
-              <View style={styles.statsRow}>
-                {statCells.map(cell => (
-                  <View key={cell.label} style={styles.statCell}>
-                    <Text style={[styles.statValue, { color: colors.foreground }]}>{cell.value}</Text>
-                    <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>{cell.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {post.tags.length > 0 && (
-            <View style={styles.tags}>
-              {post.tags.map(t => (
-                <Text key={t} style={[styles.tag, { color: colors.primary }]}>
-                  #{t}
-                </Text>
-              ))}
-            </View>
-          )}
-
-          <View style={styles.metaRow}>
-            {post.location && (
-              <View style={[styles.locationChip, { backgroundColor: colors.muted }]}>
-                <Feather name="map-pin" size={11} color={colors.mutedForeground} />
-                <Text style={[styles.locationText, { color: colors.mutedForeground }]}>{post.location}</Text>
-              </View>
-            )}
-            <Text style={[styles.timestamp, { color: colors.mutedForeground }]}>{timeAgo(post.createdAt)}</Text>
-          </View>
-
+        <View style={styles.commentSection}>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <Text style={[styles.commentsHeader, { color: colors.foreground }]}>
@@ -189,18 +101,27 @@ export default function PostDetailScreen() {
               No comments yet — say something nice.
             </Text>
           ) : (
-            postComments.map(c => (
-              <View key={c.id} style={styles.comment}>
-                <Avatar uri={c.authorAvatar} initials={c.authorInitials} color={c.authorColor} size={32} textSize={11} />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <View style={styles.commentHead}>
-                    <Text style={[styles.commentName, { color: colors.foreground }]}>{c.authorName}</Text>
-                    <Text style={[styles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(c.createdAt)}</Text>
+            postComments.map(c => {
+              const cHandle = handleForAuthorName(posts, c.authorName);
+              return (
+                <View key={c.id} style={styles.comment}>
+                  {cHandle ? (
+                    <TouchableOpacity activeOpacity={0.7} onPress={() => openAuthor(cHandle)}>
+                      <Avatar uri={c.authorAvatar} initials={c.authorInitials} color={c.authorColor} size={32} textSize={11} />
+                    </TouchableOpacity>
+                  ) : (
+                    <Avatar uri={c.authorAvatar} initials={c.authorInitials} color={c.authorColor} size={32} textSize={11} />
+                  )}
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <View style={styles.commentHead}>
+                      <Text style={[styles.commentName, { color: colors.foreground }]}>{c.authorName}</Text>
+                      <Text style={[styles.commentTime, { color: colors.mutedForeground }]}>{timeAgo(c.createdAt)}</Text>
+                    </View>
+                    <Text style={[styles.commentBody, { color: colors.foreground }]}>{c.body}</Text>
                   </View>
-                  <Text style={[styles.commentBody, { color: colors.foreground }]}>{c.body}</Text>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -262,29 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: { padding: 20, gap: 12 },
-  authorRow: { flexDirection: 'row', alignItems: 'center' },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  authorName: { fontSize: 14, fontWeight: '700' },
-  handle: { fontSize: 12, marginTop: 1 },
-  followBtn: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 18 },
-  followText: { fontSize: 12, fontWeight: '600' },
-  title: { fontSize: 18, fontWeight: '700', lineHeight: 24 },
-  caption: { fontSize: 14, lineHeight: 21 },
-  statsCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 12 },
-  statsHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stravaBadge: { width: 22, height: 22, borderRadius: 6 },
-  statsSource: { fontSize: 13, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  statCell: { flex: 1, alignItems: 'flex-start', gap: 2 },
-  statValue: { fontSize: 17, fontWeight: '800' },
-  statLabel: { fontSize: 10, letterSpacing: 0.5, fontWeight: '600', textTransform: 'uppercase' },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag: { fontSize: 13, fontWeight: '600' },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  locationChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
-  locationText: { fontSize: 11, fontWeight: '500' },
-  timestamp: { fontSize: 12 },
+  commentSection: { paddingHorizontal: 20, paddingBottom: 8 },
   divider: { height: 1, marginVertical: 4 },
   commentsHeader: { fontSize: 14, fontWeight: '700' },
   noComments: { fontSize: 13, paddingVertical: 8 },

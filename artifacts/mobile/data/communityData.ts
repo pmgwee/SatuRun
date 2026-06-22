@@ -59,6 +59,69 @@ export interface PostComment {
   createdAt: string; // ISO
 }
 
+export interface AuthorProfile {
+  bio: string;
+  followers: number;
+  following: number;
+}
+
+export const AUTHOR_PROFILES: Record<string, AuthorProfile> = {
+  '@eliudkipchoge': {
+    bio: 'Marathon world record holder. No human is limited. 🇰🇪',
+    followers: 2_400_000,
+    following: 12,
+  },
+  '@usainbolt': {
+    bio: '8x Olympic gold medalist. The fastest man who ever lived. 🇯🇲',
+    followers: 5_800_000,
+    following: 45,
+  },
+  '@kimkardashian': {
+    bio: 'Running is my therapy. Mom, entrepreneur, and morning miles enthusiast. 🏃‍♀️',
+    followers: 2_100_000,
+    following: 234,
+  },
+  '@lewishamilton': {
+    bio: 'F1 champion & runner. Off-season engine work never stops. 🏎️🏃',
+    followers: 1_850_000,
+    following: 89,
+  },
+  '@gomofarah': {
+    bio: '4x Olympic gold. Track sessions & long runs. London to KL. 🇬🇧',
+    followers: 980_000,
+    following: 156,
+  },
+  '@meilingruns': {
+    bio: 'KL sunrise chaser 🌅 Love 10Ks around KLCC Park. Training for my first marathon.',
+    followers: 4_200,
+    following: 342,
+  },
+  '@zuscoffeerunclub': {
+    bio: 'ZUS Coffee Run Club. Recovery runs + coffee every Saturday. All paces welcome. ☕️',
+    followers: 12_500,
+    following: 28,
+  },
+  '@arjunpaces': {
+    bio: 'Bangsar hills training for life. PB hunter. Chasing sub-45 for 10K. 🏔️',
+    followers: 3_100,
+    following: 567,
+  },
+  '@sarahtanruns': {
+    bio: 'Recovery gear evangelist. Easy shakeouts and carbon plates. TTDI loops. 👟',
+    followers: 2_800,
+    following: 189,
+  },
+};
+
+export function getAuthorProfile(handle: string): AuthorProfile | undefined {
+  return AUTHOR_PROFILES[handle];
+}
+
+export function handleForAuthorName(posts: CommunityPost[], name: string): string | undefined {
+  const post = posts.find(p => p.authorName === name);
+  return post?.authorHandle;
+}
+
 export type FeedFilter = 'discover' | 'following' | 'nearby';
 
 // Local post assets — bundled via Metro.
@@ -267,6 +330,193 @@ export const INITIAL_POSTS: CommunityPost[] = [
     commentCount: 0,
     savedCount: 64,
     createdAt: '2026-06-15T13:00:00Z',
+  },
+
+  // ── Second posts for each author (seeded for profile grids) ────────────
+  {
+    id: 'p1b',
+    authorName: 'Eliud Kipchoge',
+    authorHandle: '@eliudkipchoge',
+    authorInitials: 'EK',
+    authorColor: '#10B981',
+    authorAvatar: face('men', 32),
+    isVerified: true,
+    title: 'Tempo Tuesday — 5 x 1km repeats ✅',
+    caption:
+      'Sharp session today. 3:05 / 3:08 / 3:05 / 3:07 / 3:04 with 400m recovery jog. Legs felt springy. The work you put in is the work you get out.',
+    media: [{ type: 'image', uri: POST_ASSETS.post5_img, aspectRatio: 0.56 }],
+    tags: ['Tempo', 'Interval', 'TrackWork'],
+    location: 'Kaptagat',
+    runStats: { distanceKm: 12.0, durationLabel: '38:10', pace: '3:11 /km', source: 'Strava' },
+    likeCount: 8_432,
+    commentCount: 14,
+    savedCount: 1_240,
+    createdAt: '2026-06-10T06:00:00Z',
+  },
+  {
+    id: 'p2b',
+    authorName: 'Usain Bolt',
+    authorHandle: '@usainbolt',
+    authorInitials: 'UB',
+    authorColor: '#F59E0B',
+    authorAvatar: face('men', 45),
+    isVerified: true,
+    title: 'Easy 3K shakeout after the gym',
+    caption:
+      'Leg day + recovery run combo. Nothing fancy, just keeping the blood flowing. Who else does cross-training with their runs?',
+    media: [{ type: 'image', uri: POST_ASSETS.post6_img, aspectRatio: 0.56 }],
+    tags: ['Recovery', 'CrossTraining', 'Easy'],
+    location: 'Kingston',
+    runStats: { distanceKm: 3.0, durationLabel: '18:30', pace: '6:10 /km', source: 'Strava' },
+    likeCount: 15_210,
+    commentCount: 42,
+    savedCount: 2_890,
+    createdAt: '2026-06-14T17:30:00Z',
+  },
+  {
+    id: 'p3b',
+    authorName: 'Kim Kardashian',
+    authorHandle: '@kimkardashian',
+    authorInitials: 'KK',
+    authorColor: '#8B5CF6',
+    authorAvatar: face('women', 44),
+    isVerified: true,
+    title: 'Evening 5K with my sisters 👯‍♀️',
+    caption:
+      'Khloé and I bet on who could run the faster mile — I won by 12 seconds! 😜 Sister competition is real. Fun sunset vibes though.',
+    media: [
+      { type: 'image', uri: POST_ASSETS.post7_img, aspectRatio: 0.56 },
+      { type: 'image', uri: POST_ASSETS.post8_img, aspectRatio: 0.56 },
+    ],
+    tags: ['SocialRun', 'EveningRun', '5K'],
+    location: 'Hidden Hills',
+    runStats: { distanceKm: 5.2, durationLabel: '32:45', pace: '6:18 /km', source: 'Strava' },
+    likeCount: 12_890,
+    commentCount: 28,
+    savedCount: 1_450,
+    createdAt: '2026-06-13T19:45:00Z',
+  },
+  {
+    id: 'p4b',
+    authorName: 'Lewis Hamilton',
+    authorHandle: '@lewishamilton',
+    authorInitials: 'LH',
+    authorColor: '#0EA5E9',
+    authorAvatar: face('men', 51),
+    isVerified: true,
+    title: 'Hill repeats in the rain 🌧️',
+    caption:
+      'Bangsar hills never get easier — but today they were wet and slippery. 8 x 400m with jog down. Still hit sub-70s on every rep. Grateful.',
+    media: [{ type: 'image', uri: POST_ASSETS.post2_img, aspectRatio: 0.57 }],
+    tags: ['HillRepeats', 'Bangsar', 'RainRun'],
+    location: 'Bangsar',
+    runStats: { distanceKm: 8.5, durationLabel: '41:30', pace: '4:53 /km', elevationM: 145, source: 'Strava' },
+    likeCount: 9_450,
+    commentCount: 19,
+    savedCount: 890,
+    createdAt: '2026-06-11T17:20:00Z',
+  },
+  {
+    id: 'p5b',
+    authorName: 'Mo Farah',
+    authorHandle: '@gomofarah',
+    authorInitials: 'MF',
+    authorColor: '#EF4444',
+    authorAvatar: face('men', 27),
+    isVerified: true,
+    title: 'Long Sunday — 28km done 🫠',
+    caption:
+      'The real work happens when nobody is watching. Felt heavy at 20km but kept the turnover. Coffee taste better after this.',
+    media: [{ type: 'image', uri: POST_ASSETS.post9_img, aspectRatio: 0.69 }],
+    tags: ['LongRun', 'Sunday', 'Grind'],
+    location: 'London',
+    runStats: { distanceKm: 28.0, durationLabel: '2:38:00', pace: '5:38 /km', source: 'Strava' },
+    likeCount: 5_670,
+    commentCount: 11,
+    savedCount: 680,
+    createdAt: '2026-06-12T07:15:00Z',
+  },
+  {
+    id: 'p6b',
+    authorName: 'Mei Ling',
+    authorHandle: '@meilingruns',
+    authorInitials: 'ML',
+    authorColor: '#8B5CF6',
+    authorAvatar: face('women', 65),
+    isVerified: false,
+    title: 'Tried trail running for the first time! 🌿',
+    caption:
+      'Usually stick to roads around KLCC but decided to explore Bukit Kiara trails today. My calves are DESTROYED but the views were 100% worth it. Who wants to guide me next time?',
+    media: [{ type: 'image', uri: POST_ASSETS.post41_img, aspectRatio: 0.57 }],
+    tags: ['Trail', 'BukitKiara', 'Adventure'],
+    location: 'Bukit Kiara',
+    runStats: { distanceKm: 7.5, durationLabel: '52:30', pace: '7:00 /km', elevationM: 180, source: 'Strava' },
+    likeCount: 412,
+    commentCount: 8,
+    savedCount: 67,
+    createdAt: '2026-06-10T06:30:00Z',
+  },
+  {
+    id: 'p7b',
+    authorName: 'ZUS Coffee Run Club',
+    authorHandle: '@zuscoffeerunclub',
+    authorInitials: 'ZC',
+    authorColor: '#0EA5E9',
+    isVerified: true,
+    title: 'Weekly Route Recap: Kiara Hills Loop 📍',
+    caption:
+      '45 runners showed up for our Sunday long run! 12km route with a coffee stop halfway. Thanks to the ZUS team for the fuel — see you next Saturday!',
+    media: [
+      { type: 'image', uri: POST_ASSETS.post42_img, aspectRatio: 0.56 },
+      { type: 'image', uri: POST_ASSETS.post5_img, aspectRatio: 0.56 },
+    ],
+    tags: ['ZUSRunClub', 'KiaraHill', 'LongRun'],
+    location: 'Mont Kiara',
+    runStats: { distanceKm: 12.0, durationLabel: '1:08:00', pace: '5:40 /km', source: 'Strava' },
+    likeCount: 678,
+    commentCount: 5,
+    savedCount: 145,
+    createdAt: '2026-06-09T10:00:00Z',
+  },
+  {
+    id: 'p8b',
+    authorName: 'Arjun R.',
+    authorHandle: '@arjunpaces',
+    authorInitials: 'AR',
+    authorColor: '#10B981',
+    authorAvatar: face('men', 12),
+    isVerified: false,
+    title: 'Failed at negative splits today 😅',
+    caption:
+      'Went out too fast on the first 5K and paid for it on the way back. 4:45 → 5:12 pace. Lesson learned: patience pays off. Back at it Thursday.',
+    media: [{ type: 'image', uri: POST_ASSETS.post6_img, aspectRatio: 0.56 }],
+    tags: ['Bangsar', 'Training', 'LessonLearned'],
+    location: 'Bangsar',
+    runStats: { distanceKm: 10.0, durationLabel: '50:20', pace: '5:02 /km', elevationM: 220, source: 'Strava' },
+    likeCount: 156,
+    commentCount: 4,
+    savedCount: 23,
+    createdAt: '2026-06-13T18:45:00Z',
+  },
+  {
+    id: 'p9b',
+    authorName: 'Sarah Tan',
+    authorHandle: '@sarahtanruns',
+    authorInitials: 'ST',
+    authorColor: '#EF4444',
+    authorAvatar: face('women', 68),
+    isVerified: false,
+    title: 'Morning shakeout in my new Altras 🎉',
+    caption:
+      'Finally upgraded to carbon plates! Did an easy 3K around TTDI Park to break them in. First impressions — these feel FAST. Can\'t wait to test them on a tempo run next week.',
+    media: [{ type: 'image', uri: POST_ASSETS.post8_img, aspectRatio: 0.56 }],
+    tags: ['Gear', 'Altras', 'Easy'],
+    location: 'TTDI',
+    runStats: { distanceKm: 3.0, durationLabel: '19:30', pace: '6:30 /km', source: 'Strava' },
+    likeCount: 72,
+    commentCount: 2,
+    savedCount: 18,
+    createdAt: '2026-06-12T07:20:00Z',
   },
 ];
 
