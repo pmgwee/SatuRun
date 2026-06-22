@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -26,10 +27,34 @@ import {
   type Partner,
   type VoucherTemplate,
 } from '@/data/rewardsData';
-import { ACCENT_ON_DARK, CARD_SHADOW } from '@/constants/brand';
+import { ACCENT_ON_DARK, ACCENT_ON_DARK_INK, CARD_SHADOW } from '@/constants/brand';
 
 type RewardTab = 'missions' | 'redeem' | 'my-rewards';
 type VoucherFilter = 'active' | 'past';
+
+// ── Luxe accents ─────────────────────────────────────────────────
+// Metallic gold for premium / milestone cues — used sparingly as hairlines,
+// tier labels and the "claim" action so the screen reads expensive, not loud.
+const GOLD = '#D4AF37';
+const GOLD_GRADIENT = ['#F3D98B', '#D4AF37', '#A8842A'] as const;
+const GOLD_INK = '#2A1E00';
+// Always-dark "metal" surface for the points hero — premium in both themes.
+const HERO_CARD_GRADIENT = ['#2A382A', '#161E16', '#0C110C'] as const;
+
+type Tier = { label: string; color: string };
+function getTier(points: number): Tier {
+  if (points >= 3000) return { label: 'PLATINUM', color: '#E7E7E4' };
+  if (points >= 1500) return { label: 'GOLD', color: GOLD };
+  if (points >= 500) return { label: 'SILVER', color: '#CFD3D6' };
+  return { label: 'BRONZE', color: '#D69A6A' };
+}
+function pointsToNextTier(points: number): string {
+  const steps: [number, string][] = [[500, 'Silver'], [1500, 'Gold'], [3000, 'Platinum']];
+  for (const [threshold, name] of steps) {
+    if (points < threshold) return `${formatPoints(threshold - points)} pts to ${name}`;
+  }
+  return 'Top tier reached';
+}
 
 export default function RewardsScreen() {
   const colors = useColors();
@@ -61,6 +86,7 @@ export default function RewardsScreen() {
   const currentCheckInDay = checkInStreak % 7;
   const activeVouchers = userVouchers.filter(v => v.status === 'active');
   const pastVouchers = userVouchers.filter(v => v.status === 'used' || v.status === 'expired');
+  const tier = getTier(userPoints);
 
   const templatesByPartner = VOUCHER_TEMPLATES.reduce<Record<string, VoucherTemplate[]>>(
     (acc, t) => {
@@ -81,20 +107,48 @@ export default function RewardsScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* ── Header ─────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background }]}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>SatuRun Points</Text>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Rewards</Text>
 
-        {/* Points Hero */}
-        <View style={styles.pointsHero}>
-          <View style={[styles.pointsCircle, { backgroundColor: colors.card, borderColor: colors.primaryBorder }]}>
-            <View style={styles.pointsRing}>
-              <Feather name="zap" size={28} color={colors.primary} />
+        {/* Premium membership / points card */}
+        <LinearGradient
+          colors={HERO_CARD_GRADIENT}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroCard}
+        >
+          <View style={styles.heroCardHairline} pointerEvents="none" />
+          <LinearGradient
+            colors={['rgba(255,255,255,0.10)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.9, y: 0.8 }}
+            style={styles.heroSheen}
+            pointerEvents="none"
+          />
+
+          <View style={styles.heroCardTop}>
+            <Text style={styles.heroCardLabel}>SATURUN POINTS</Text>
+            <View style={[styles.tierPill, { borderColor: `${tier.color}66` }]}>
+              <Feather name="award" size={11} color={tier.color} />
+              <Text style={[styles.tierPillText, { color: tier.color }]}>{tier.label}</Text>
             </View>
-            <Text style={[styles.pointsNumber, { color: colors.primary }]}>
-              {formatPoints(userPoints)}
-            </Text>
-            <Text style={[styles.pointsLabel, { color: colors.mutedForeground }]}>POINTS</Text>
           </View>
-        </View>
+
+          <View style={styles.heroCardNumRow}>
+            <View style={styles.heroZap}>
+              <Feather name="zap" size={18} color={ACCENT_ON_DARK_INK} />
+            </View>
+            <Text style={styles.heroCardNumber}>{formatPoints(userPoints)}</Text>
+            <Text style={styles.heroCardUnit}>pts</Text>
+          </View>
+
+          <View style={styles.heroCardBottom}>
+            <View style={styles.heroStreak}>
+              <Text style={styles.heroStreakEmoji}>🔥</Text>
+              <Text style={styles.heroStreakText}>{checkInStreak}-day streak</Text>
+            </View>
+            <Text style={styles.heroNextTier}>{pointsToNextTier(userPoints)}</Text>
+          </View>
+        </LinearGradient>
 
         {/* Tab Bar */}
         <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
@@ -139,15 +193,17 @@ export default function RewardsScreen() {
     return (
       <>
         {/* Hero running banner */}
-        <View style={[styles.heroBanner, { borderColor: colors.cardBorder }]}>
-          <Image
-            source={{ uri: IMAGES.runHero }}
-            style={styles.heroImage}
-            resizeMode="cover"
+        <View style={[styles.heroBanner, { borderColor: 'rgba(212,175,55,0.30)' }]}>
+          <Image source={{ uri: IMAGES.runHero }} style={styles.heroImage} resizeMode="cover" />
+          <LinearGradient
+            colors={['rgba(8,11,8,0.15)', 'rgba(8,11,8,0.55)', 'rgba(8,11,8,0.90)']}
+            style={StyleSheet.absoluteFill}
           />
-          <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
-            <Feather name="zap" size={20} color={ACCENT_ON_DARK} />
+            <View style={styles.heroBadge}>
+              <Feather name="zap" size={11} color={ACCENT_ON_DARK_INK} />
+              <Text style={styles.heroBadgeText}>REWARDS PROGRAM</Text>
+            </View>
             <Text style={styles.heroTitle}>Run. Earn. Redeem.</Text>
             <Text style={styles.heroSubtitle}>Complete missions & check in daily to earn SatuRun Points</Text>
           </View>
@@ -156,10 +212,16 @@ export default function RewardsScreen() {
         {/* Daily Check-in Card */}
         <View style={[styles.checkInCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <View style={styles.checkInHeader}>
-            <Text style={[styles.checkInTitle, { color: colors.foreground }]}>Daily Check-in</Text>
-            <TouchableOpacity>
-              <Feather name="info" size={18} color={colors.mutedForeground} />
-            </TouchableOpacity>
+            <View>
+              <Text style={[styles.checkInTitle, { color: colors.foreground }]}>Daily Check-in</Text>
+              <Text style={[styles.checkInSub, { color: colors.mutedForeground }]}>
+                Keep your streak alive for bonus points
+              </Text>
+            </View>
+            <View style={[styles.streakBadge, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}>
+              <Text style={{ fontSize: 13 }}>🔥</Text>
+              <Text style={[styles.streakBadgeText, { color: colors.primary }]}>{checkInStreak}</Text>
+            </View>
           </View>
 
           {/* 7-day circles */}
@@ -168,47 +230,52 @@ export default function RewardsScreen() {
               const isCompleted = i < currentCheckInDay;
               const isTodayDone = i === currentCheckInDay && isCheckedInToday;
               const isCurrent = i === currentCheckInDay && !isCheckedInToday;
-              const isFuture = i > currentCheckInDay;
+              const filled = isCompleted || isTodayDone;
+              const isMilestone = i === 6;
 
               return (
                 <View key={i} style={styles.dayItem}>
-                  <View
-                    style={[
-                      styles.dayCircle,
-                      {
-                        backgroundColor: isCompleted || isTodayDone
-                          ? colors.primary
-                          : isCurrent
-                          ? colors.primarySoft
-                          : colors.muted,
-                        borderWidth: isCurrent ? 2 : 0,
-                        borderColor: isCurrent ? colors.primary : 'transparent',
-                      },
-                    ]}
-                  >
-                    <Text
+                  {filled ? (
+                    <LinearGradient
+                      colors={[colors.primary, colors.accentInk]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.dayCircle}
+                    >
+                      <Feather name="check" size={15} color={colors.primaryForeground} />
+                    </LinearGradient>
+                  ) : (
+                    <View
                       style={[
-                        styles.dayPoints,
+                        styles.dayCircle,
                         {
-                          color: isCompleted || isTodayDone
-                            ? colors.primaryForeground
-                            : isCurrent
-                            ? colors.primary
-                            : colors.mutedForeground,
-                          fontSize: isCompleted || isTodayDone ? 13 : 11,
+                          backgroundColor: isCurrent ? colors.primarySoft : colors.muted,
+                          borderWidth: isCurrent ? 2 : isMilestone ? 1.5 : 0,
+                          borderColor: isCurrent ? colors.primary : isMilestone ? GOLD : 'transparent',
                         },
                       ]}
                     >
-                      {isCompleted || isTodayDone ? '✓' : `+${pts}`}
-                    </Text>
-                  </View>
+                      {isMilestone ? (
+                        <Feather name="gift" size={14} color={isCurrent ? colors.primary : GOLD} />
+                      ) : (
+                        <Text
+                          style={[
+                            styles.dayPoints,
+                            { color: isCurrent ? colors.primary : colors.mutedForeground },
+                          ]}
+                        >
+                          +{pts}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                   <Text
                     style={[
                       styles.dayLabel,
                       { color: isCurrent || isTodayDone ? colors.primary : colors.mutedForeground },
                     ]}
                   >
-                    Day {i + 1}
+                    {isMilestone ? `+${pts}` : `Day ${i + 1}`}
                   </Text>
                 </View>
               );
@@ -216,32 +283,40 @@ export default function RewardsScreen() {
           </View>
 
           {/* Check-in button */}
-          <TouchableOpacity
-            onPress={checkIn}
-            disabled={isCheckedInToday}
-            activeOpacity={0.8}
-            style={[
-              styles.checkInBtn,
-              { backgroundColor: isCheckedInToday ? colors.muted : colors.primary },
-            ]}
-          >
-            <Text
-              style={[
-                styles.checkInBtnText,
-                { color: isCheckedInToday ? colors.mutedForeground : colors.primaryForeground },
-              ]}
-            >
-              {isCheckedInToday
-                ? '✓ Checked in today!'
-                : `Check In — Earn ${CHECK_IN_REWARDS[currentCheckInDay]} pts`}
-            </Text>
-          </TouchableOpacity>
+          {isCheckedInToday ? (
+            <View style={[styles.checkInBtn, { backgroundColor: colors.muted }]}>
+              <Feather name="check" size={14} color={colors.mutedForeground} />
+              <Text style={[styles.checkInBtnText, { color: colors.mutedForeground }]}>
+                Checked in today
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={checkIn} activeOpacity={0.85}>
+              <LinearGradient
+                colors={[colors.primary, colors.accentInk]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.checkInBtn}
+              >
+                <Feather name="zap" size={14} color={colors.primaryForeground} />
+                <Text style={[styles.checkInBtnText, { color: colors.primaryForeground }]}>
+                  Check In · Earn {CHECK_IN_REWARDS[currentCheckInDay]} pts
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Section title */}
-        <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 24 }]}>
-          Complete missions &amp; earn SatuRun Points
-        </Text>
+        {/* Section header */}
+        <View style={[styles.sectionHead, { marginTop: 26 }]}>
+          <View style={[styles.sectionAccent, { backgroundColor: colors.primary }]} />
+          <Text style={[styles.sectionTitle, { color: colors.foreground, marginBottom: 0, flex: 1 }]}>
+            Missions
+          </Text>
+          <Text style={[styles.sectionCount, { color: colors.mutedForeground }]}>
+            Earn SatuRun Points
+          </Text>
+        </View>
 
         {/* Mission grid (2-column) */}
         <View style={styles.missionsGrid}>
@@ -272,11 +347,16 @@ export default function RewardsScreen() {
               <Text style={{ color: colors.mutedForeground, fontSize: 13, flex: 1 }}>
                 {step.text}
               </Text>
-              <View style={[styles.howNum, { backgroundColor: colors.muted }]}>
-                <Text style={{ color: colors.mutedForeground, fontSize: 11, fontWeight: '700' }}>
+              <LinearGradient
+                colors={[colors.primary, colors.accentInk]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.howNum}
+              >
+                <Text style={{ color: colors.primaryForeground, fontSize: 11, fontWeight: '800' }}>
                   {i + 1}
                 </Text>
-              </View>
+              </LinearGradient>
             </View>
           ))}
         </View>
@@ -608,37 +688,50 @@ function MissionCard({
   const isActive = mission.status !== 'not_started';
   const pct = Math.min(100, (mission.progress / mission.target) * 100);
 
+  const chip =
+    mission.status === 'completed'
+      ? { text: 'READY', color: GOLD }
+      : mission.status === 'in_progress'
+      ? { text: 'ACTIVE', color: colors.primary }
+      : mission.status === 'claimed'
+      ? { text: 'DONE', color: colors.mutedForeground }
+      : null;
+
   return (
     <View style={[styles.missionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-      {/* Icon + subtitle banner */}
-      <View style={styles.missionBanner}>
-        <View
-          style={[
-            styles.missionIcon,
-            { backgroundColor: isActive ? colors.primarySoft : colors.muted },
-          ]}
-        >
-          <Feather
-            name={mission.icon as any}
-            size={18}
-            color={isActive ? colors.primary : colors.mutedForeground}
-          />
-        </View>
-        <Text
-          style={{
-            color: isActive ? colors.primary : colors.mutedForeground,
-            fontSize: 9,
-            fontWeight: '700',
-            letterSpacing: 0.6,
-            marginLeft: 6,
-          }}
-          numberOfLines={1}
-        >
-          {mission.subtitle}
-        </Text>
+      {/* Icon tile + status chip */}
+      <View style={styles.missionTop}>
+        {isActive ? (
+          <LinearGradient
+            colors={[colors.primary, colors.accentInk]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.missionIcon}
+          >
+            <Feather name={mission.icon as any} size={17} color={colors.primaryForeground} />
+          </LinearGradient>
+        ) : (
+          <View style={[styles.missionIcon, { backgroundColor: colors.muted }]}>
+            <Feather name={mission.icon as any} size={17} color={colors.mutedForeground} />
+          </View>
+        )}
+        {chip && (
+          <View style={[styles.statusChip, { borderColor: `${chip.color}55` }]}>
+            <View style={[styles.statusDotMini, { backgroundColor: chip.color }]} />
+            <Text style={[styles.statusChipText, { color: chip.color }]}>{chip.text}</Text>
+          </View>
+        )}
       </View>
 
-      {/* Title */}
+      {/* Overline */}
+      <Text
+        style={[styles.missionOverline, { color: isActive ? colors.primary : colors.mutedForeground }]}
+        numberOfLines={1}
+      >
+        {mission.subtitle}
+      </Text>
+
+      {/* Title + desc */}
       <Text style={[styles.missionTitle, { color: colors.foreground }]} numberOfLines={1}>
         {mission.title}
       </Text>
@@ -648,76 +741,71 @@ function MissionCard({
 
       {/* Points + Time */}
       <View style={styles.missionMeta}>
-        <View style={styles.missionPointsRow}>
-          <View style={[styles.miniIcon, { backgroundColor: colors.primarySoft }]}>
-            <Feather name="zap" size={9} color={colors.primary} />
-          </View>
-          <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>
-            {mission.pointsReward} pts
-          </Text>
+        <View style={[styles.pointsPill, { backgroundColor: colors.primarySoft }]}>
+          <Feather name="zap" size={10} color={colors.primary} />
+          <Text style={[styles.pointsPillText, { color: colors.primary }]}>{mission.pointsReward} pts</Text>
         </View>
         <View style={styles.missionTimeRow}>
           <Feather name="clock" size={10} color={colors.mutedForeground} />
           <Text style={{ color: colors.mutedForeground, fontSize: 11, marginLeft: 3 }}>
-            {mission.daysLeft}d left
+            {mission.daysLeft}d
           </Text>
         </View>
       </View>
 
       {/* Progress bar */}
       {(mission.status === 'in_progress' || mission.status === 'completed') && (
-        <View style={{ marginTop: 8 }}>
+        <View style={{ marginTop: 10 }}>
           <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  backgroundColor:
-                    mission.status === 'completed' ? colors.primary : colors.primaryBorder,
-                  width: `${pct}%`,
-                },
-              ]}
+            <LinearGradient
+              colors={mission.status === 'completed' ? GOLD_GRADIENT : [colors.primary, colors.accentInk]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressFill, { width: `${pct}%` }]}
             />
           </View>
-          <Text style={{ color: colors.mutedForeground, fontSize: 10, marginTop: 4 }}>
+          <Text style={{ color: colors.mutedForeground, fontSize: 10, marginTop: 5 }}>
             {mission.progress}/{mission.target} {mission.unit}
           </Text>
         </View>
       )}
 
       {/* Action button */}
-      <View style={{ marginTop: 10 }}>
+      <View style={{ marginTop: 12 }}>
         {mission.status === 'completed' ? (
-          <TouchableOpacity
-            onPress={onClaim}
-            activeOpacity={0.8}
-            style={[styles.missionBtn, { backgroundColor: colors.primary }]}
-          >
-            <Text style={[styles.missionBtnText, { color: colors.primaryForeground }]}>
-              Claim {mission.pointsReward} pts
-            </Text>
+          <TouchableOpacity onPress={onClaim} activeOpacity={0.85}>
+            <LinearGradient
+              colors={GOLD_GRADIENT}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.missionBtn}
+            >
+              <Text style={[styles.missionBtnText, { color: GOLD_INK }]}>
+                Claim {mission.pointsReward} pts
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         ) : mission.status === 'in_progress' ? (
           <View style={[styles.missionBtnOutline, { borderColor: colors.primaryBorder }]}>
-            <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '700' }}>
-              In Progress
-            </Text>
+            <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '700' }}>In Progress</Text>
           </View>
         ) : mission.status === 'claimed' ? (
           <View style={[styles.missionBtnOutline, { borderColor: colors.border }]}>
-            <Text style={{ color: colors.mutedForeground, fontSize: 11, fontWeight: '700' }}>
-              ✓ Claimed
+            <Feather name="check" size={12} color={colors.mutedForeground} />
+            <Text style={{ color: colors.mutedForeground, fontSize: 11, fontWeight: '700', marginLeft: 4 }}>
+              Claimed
             </Text>
           </View>
         ) : (
-          <TouchableOpacity
-            onPress={onStart}
-            activeOpacity={0.8}
-            style={[styles.missionBtn, { backgroundColor: colors.primary }]}
-          >
-            <Text style={[styles.missionBtnText, { color: colors.primaryForeground }]}>
-              Start Now
-            </Text>
+          <TouchableOpacity onPress={onStart} activeOpacity={0.85}>
+            <LinearGradient
+              colors={[colors.primary, colors.accentInk]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.missionBtn}
+            >
+              <Text style={[styles.missionBtnText, { color: colors.primaryForeground }]}>Start Now</Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -741,30 +829,55 @@ const styles = StyleSheet.create({
     height: 180, borderRadius: 18, overflow: 'hidden', marginBottom: 16, borderWidth: 1,
   },
   heroImage: { width: '100%', height: '100%' },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,5,5,0.55)',
-  },
   heroContent: {
-    position: 'absolute', bottom: 16, left: 18, right: 18, gap: 4,
+    position: 'absolute', bottom: 16, left: 18, right: 18, gap: 5,
   },
-  heroTitle: { color: ACCENT_ON_DARK, fontSize: 22, fontWeight: '800' },
-  heroSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+  heroBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
+    backgroundColor: ACCENT_ON_DARK, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20,
+  },
+  heroBadgeText: { color: ACCENT_ON_DARK_INK, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
+  heroTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', letterSpacing: -0.3 },
+  heroSubtitle: { color: 'rgba(255,255,255,0.72)', fontSize: 12, lineHeight: 16 },
 
   // ─ Header
   header: { paddingHorizontal: 20, paddingBottom: 0, gap: 16 },
   headerTitle: { fontSize: 24, fontWeight: '700' },
 
-  // ─ Points Hero
-  pointsHero: { alignItems: 'center', paddingVertical: 4 },
-  pointsCircle: {
-    width: 140, height: 140, borderRadius: 70,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2,
+  // ─ Points hero / membership card
+  heroCard: {
+    ...CARD_SHADOW,
+    shadowOpacity: 0.20, shadowRadius: 18, shadowOffset: { width: 0, height: 10 },
+    borderRadius: 20, padding: 18, overflow: 'hidden', gap: 14,
   },
-  pointsRing: { marginBottom: 4 },
-  pointsNumber: { fontSize: 32, fontWeight: '800' },
-  pointsLabel: { fontSize: 10, fontWeight: '600', letterSpacing: 1.5, marginTop: 2 },
+  heroCardHairline: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20, borderWidth: 1, borderColor: 'rgba(212,175,55,0.40)',
+  },
+  heroSheen: { position: 'absolute', top: 0, left: 0, right: 0, height: '65%' },
+  heroCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  heroCardLabel: { color: 'rgba(255,255,255,0.58)', fontSize: 11, fontWeight: '700', letterSpacing: 2 },
+  tierPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: 20, borderWidth: 1,
+    backgroundColor: 'rgba(0,0,0,0.28)',
+  },
+  tierPillText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.6 },
+  heroCardNumRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
+  heroZap: {
+    width: 34, height: 34, borderRadius: 12, backgroundColor: ACCENT_ON_DARK,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 5,
+  },
+  heroCardNumber: { color: '#FFFFFF', fontSize: 40, fontWeight: '800', letterSpacing: -1, lineHeight: 44 },
+  heroCardUnit: { color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: '700', marginBottom: 8 },
+  heroCardBottom: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.09)', paddingTop: 12,
+  },
+  heroStreak: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  heroStreakEmoji: { fontSize: 13 },
+  heroStreakText: { color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600' },
+  heroNextTier: { color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '600' },
 
   // ─ Tab bar
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, gap: 0 },
@@ -777,53 +890,74 @@ const styles = StyleSheet.create({
     ...CARD_SHADOW,
     borderRadius: 16, padding: 18, borderWidth: 1, gap: 14,
   },
-  checkInHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  checkInHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   checkInTitle: { fontSize: 15, fontWeight: '700' },
+  checkInSub: { fontSize: 11, marginTop: 2 },
+  streakBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, borderWidth: 1,
+  },
+  streakBadgeText: { fontSize: 13, fontWeight: '800' },
   checkInDays: { flexDirection: 'row', justifyContent: 'space-between' },
-  dayItem: { alignItems: 'center', gap: 5 },
+  dayItem: { alignItems: 'center', gap: 6 },
   dayCircle: {
     width: 38, height: 38, borderRadius: 19,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
-  dayPoints: { fontWeight: '700' },
-  dayLabel: { fontSize: 9, fontWeight: '500' },
+  dayPoints: { fontWeight: '700', fontSize: 11 },
+  dayLabel: { fontSize: 9, fontWeight: '600' },
   checkInBtn: {
-    borderRadius: 12, paddingVertical: 12, alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    borderRadius: 12, paddingVertical: 13,
   },
   checkInBtnText: { fontSize: 13, fontWeight: '700' },
 
   // ─ Section
-  sectionTitle: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
+  sectionTitle: { fontSize: 17, fontWeight: '800', marginBottom: 12, letterSpacing: -0.2 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  sectionAccent: { width: 3, height: 18, borderRadius: 2 },
+  sectionCount: { fontSize: 11, fontWeight: '600' },
 
   // ─ Missions grid
   missionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   missionCard: {
     ...CARD_SHADOW,
-    width: '47%', borderRadius: 16, padding: 14, borderWidth: 1, gap: 6,
+    width: '47%', borderRadius: 18, padding: 14, borderWidth: 1, gap: 5,
   },
-  missionBanner: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  missionTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   missionIcon: {
-    width: 30, height: 30, borderRadius: 10,
+    width: 38, height: 38, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
   },
+  statusChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 20, borderWidth: 1,
+  },
+  statusDotMini: { width: 5, height: 5, borderRadius: 3 },
+  statusChipText: { fontSize: 8, fontWeight: '800', letterSpacing: 0.5 },
+  missionOverline: { fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
   missionTitle: { fontSize: 14, fontWeight: '700' },
   missionDesc: { fontSize: 11, lineHeight: 15 },
-  missionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  missionPointsRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  missionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
+  pointsPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
+  },
+  pointsPillText: { fontSize: 12, fontWeight: '800' },
   missionTimeRow: { flexDirection: 'row', alignItems: 'center' },
   miniIcon: {
     width: 18, height: 18, borderRadius: 9,
     alignItems: 'center', justifyContent: 'center',
   },
-  progressTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 2 },
+  progressTrack: { height: 5, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 3 },
   missionBtn: {
-    borderRadius: 10, paddingVertical: 9, alignItems: 'center',
+    flexDirection: 'row', borderRadius: 11, paddingVertical: 10, alignItems: 'center', justifyContent: 'center',
   },
   missionBtnOutline: {
-    borderRadius: 10, paddingVertical: 9, alignItems: 'center', borderWidth: 1,
+    flexDirection: 'row', borderRadius: 11, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },
-  missionBtnText: { fontSize: 11, fontWeight: '700' },
+  missionBtnText: { fontSize: 11, fontWeight: '800' },
 
   // ─ How it works
   howItWorks: { borderRadius: 16, padding: 18, borderWidth: 1, marginTop: 20, gap: 12 },
