@@ -141,6 +141,7 @@ export default function DiscoverScreen() {
         <MapWebView
           events={filteredEvents}
           onAreaPress={handleAreaPress}
+          selectedNeighborhood={selectedArea?.neighborhood ?? null}
         />
 
         {/* Filter chips float on top of map */}

@@ -114,13 +114,13 @@ Required env vars (see `.env.example`):
 ### Android (already configured)
 1. Open Android Studio → Device Manager
 2. Start one of the available emulators (Pixel_3_API_33, Pixel_4_XL_API_33, etc.)
-3. Run: `npx expo start --android`
+3. Run: `pnpm --filter @workspace/mobile run dev:android`
 4. cd c:\Users\quekm\Desktop\projects\Asset-Manager\Asset-Manager\artifacts\mobile
 
 
 ### Using Expo Go on Physical Phone
 1. Install **Expo Go** app on your phone
-2. Run: `pnpm --filter @workspace/mobile run dev`
+2. Run: `npx expo start --tunnel`
 3. Scan the QR code with your phone camera
 
 ### iOS Simulator (macOS only)
