@@ -51,7 +51,7 @@ export function EventCard({ event, onPress }: EventCardProps) {
               event.organizer === p.name,
             )?.logoUri;
             return partnerLogo ? (
-              <Image source={{ uri: partnerLogo }} style={styles.orgLogo} resizeMode="cover" />
+              <Image source={typeof partnerLogo === 'number' ? partnerLogo : { uri: partnerLogo }} style={styles.orgLogo} resizeMode="cover" />
             ) : (
               <View style={[styles.orgAvatar, { backgroundColor: event.organizerColor }]}>
                 <Text style={styles.orgInitials}>{event.organizerInitials}</Text>

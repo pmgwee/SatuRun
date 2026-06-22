@@ -106,12 +106,14 @@ export const IMAGES = {
 
 // ── Partners ─────────────────────────────────────────────────────
 
-export const PARTNERS = [
+export type Partner = { id: string; name: string; handle: string; initials: string; color: string; logoUri?: string | number };
+
+export const PARTNERS: Partner[] = [
   { id: 'zus-coffee', name: 'ZUS Coffee', handle: 'zuscoffeerunclub', initials: 'ZC', color: '#0EA5E9', logoUri: 'https://zuscoffee.com/wp-content/uploads/2025/07/app-logo-resize-256x256-1.png' },
   { id: 'ceo-sport-club', name: 'ceoSportClub', handle: 'ceosportsclub', initials: 'PK', color: '#8B5CF6', logoUri: 'https://scontent.cdninstagram.com/v/t51.82787-19/572711352_17916887241206215_3284586319281328837_n.jpg?stp=dst-jpg_s150x150_tt6&_nc_cat=101&ccb=7-5&_nc_sid=f7ccc5&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy41MDAuQzMifQ%3D%3D&_nc_ohc=xw7luCps82oQ7kNvwHAcPZZ&_nc_oc=Adru2wLxZOhZt5TsB4KNNfXIaB0_KMG5Std27P6tJBU7B6z80E3vS7lSPz1qIjNSoEA&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=u1igmderzZc2bv7CAarFfA&_nc_ss=70a8c&oh=00_Af_Y0XIakgXM7I2LeOD0rhxS7Rw_pXdLw8SX_T7723ysXQ&oe=6A31E8C4' },
   { id: 'mixue', name: 'Mixue', handle: 'mixue', initials: 'MX', color: '#EF4444', logoUri: 'https://logowik.com/content/uploads/images/mixue-ice-cream4751.logowik.com.webp' },
-  { id: 'big-pharmacy', name: 'BigPharmacy', handle: 'bigpharmacy', initials: 'BP', color: '#10B981', logoUri: 'https://maas-log-prod.cn-wlcb.ufileos.com/anthropic/3a5b4c25-9fa4-4e34-825d-83fa0cb8bc1f/d13b6154f06dd2b64289e27538af9fac.png?UCloudPublicKey=TOKEN_e15ba47a-d098-4fbd-9afc-a0dcf0e4e621&Expires=1781283932&Signature=jafUyVvu+Bnue/48JoykygVck3I=' },
-] as const;
+  { id: 'big-pharmacy', name: 'BigPharmacy', handle: 'bigpharmacy', initials: 'BP', color: '#10B981', logoUri: require('../assets/bigpharmacy.png') },
+];
 
 // ── Missions ─────────────────────────────────────────────────────
 

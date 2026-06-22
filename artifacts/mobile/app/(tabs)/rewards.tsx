@@ -23,6 +23,7 @@ import {
   formatPoints,
   getTodayString,
   type Mission,
+  type Partner,
   type VoucherTemplate,
 } from '@/data/rewardsData';
 import { ACCENT_ON_DARK, CARD_SHADOW } from '@/constants/brand';
@@ -297,7 +298,7 @@ export default function RewardsScreen() {
 
         {/* Partner sections */}
         {Object.entries(templatesByPartner).map(([partner, templates]) => {
-          const partnerInfo: { readonly id: string; readonly name: string; readonly initials: string; readonly color: string; readonly logoUri?: string } | undefined = PARTNERS.find(p => p.name === partner);
+          const partnerInfo: Partner | undefined = PARTNERS.find(p => p.name === partner);
           const hasElite = templates.some(t => t.isElite);
           return (
             <View key={partner} style={{ marginBottom: 8 }}>
@@ -311,7 +312,7 @@ export default function RewardsScreen() {
                 >
                   {partnerInfo?.logoUri ? (
                     <Image
-                      source={{ uri: partnerInfo.logoUri }}
+                      source={typeof partnerInfo.logoUri === 'number' ? partnerInfo.logoUri : { uri: partnerInfo.logoUri }}
                       style={styles.partnerLogo}
                       resizeMode="contain"
                     />
@@ -499,7 +500,7 @@ export default function RewardsScreen() {
                   const partnerInfo = PARTNERS.find(p => p.name === v.partnerName);
                   return partnerInfo?.logoUri ? (
                     <Image
-                      source={{ uri: partnerInfo.logoUri }}
+                      source={typeof partnerInfo.logoUri === 'number' ? partnerInfo.logoUri : { uri: partnerInfo.logoUri }}
                       style={styles.vImage}
                       resizeMode="cover"
                     />

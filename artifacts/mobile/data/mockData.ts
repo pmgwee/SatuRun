@@ -109,6 +109,21 @@ export const ORGANIZERS: Organizer[] = [
   },
 ];
 
+// Local club/organizer logos, keyed by handle. Used wherever an organizer is
+// shown (trending list, event rows) so each brand uses its own image.
+export const ORGANIZER_LOGOS: Record<string, number> = {
+  '@ceosportsclub': require('../assets/clubs/ceosportclub.png'),
+  '@zuscoffeerunclub': require('../assets/clubs/zusCoffee.png'),
+  '@bangsarathleticgroup': require('../assets/clubs/bangsarahleticgroup.png'),
+  '@dpcstriders': require('../assets/clubs/DpcStriders.png'),
+  '@klccrunners': require('../assets/clubs/klccrunners.png'),
+  '@bigpharmacy': require('../assets/clubs/bigpharmacy.png'),
+};
+
+/** Resolve an organizer's logo by handle, e.g. "@zuscoffeerunclub". */
+export const getOrganizerLogo = (handle?: string): number | undefined =>
+  handle ? ORGANIZER_LOGOS[handle] : undefined;
+
 export const INITIAL_EVENTS: RunningEvent[] = [
   // ── TTDI (3 events) ─────────────────────────────────────────
   {

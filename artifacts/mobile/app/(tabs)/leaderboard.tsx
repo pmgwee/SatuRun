@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { INITIAL_EVENTS, ORGANIZERS, type Organizer } from '@/data/mockData';
+import { INITIAL_EVENTS, ORGANIZERS, getOrganizerLogo, type Organizer } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
 import { CARD_SHADOW } from '@/constants/brand';
 
@@ -19,12 +20,17 @@ function OrgRow({ org, rank }: OrgRowProps) {
   const [following, setFollowing] = useState(false);
   const rankColor = rank <= 3 ? RANK_COLORS[rank - 1] : colors.mutedForeground;
   const ringColor = rank <= 3 ? RING_COLORS[rank - 1] : 'transparent';
+  const logo = getOrganizerLogo(org.handle);
 
   return (
     <View style={[styles.orgRow, { backgroundColor: colors.card, borderColor: rank <= 3 ? ringColor : colors.border }]}>
       <Text style={[styles.rankNum, { color: rankColor }]}>#{rank}</Text>
       <View style={[styles.orgAvatar, { backgroundColor: org.color, borderWidth: rank <= 3 ? 2 : 0, borderColor: ringColor }]}>
-        <Text style={styles.orgAvatarText}>{org.initials}</Text>
+        {logo ? (
+          <Image source={logo} style={styles.orgAvatarImg} contentFit="cover" />
+        ) : (
+          <Text style={styles.orgAvatarText}>{org.initials}</Text>
+        )}
       </View>
       <View style={{ flex: 1, marginLeft: 12 }}>
         <View style={styles.orgNameRow}>
@@ -106,7 +112,11 @@ export default function LeaderboardScreen() {
                     <Text style={[styles.eventTitle, { color: colors.foreground }]} numberOfLines={2}>{event.title}</Text>
                     <View style={styles.eventMeta}>
                       <View style={[styles.orgDot, { backgroundColor: event.organizerColor }]}>
-                        <Text style={styles.orgDotText}>{event.organizerInitials}</Text>
+                        {getOrganizerLogo(event.organizerHandle) ? (
+                          <Image source={getOrganizerLogo(event.organizerHandle)!} style={styles.orgDotImg} contentFit="cover" />
+                        ) : (
+                          <Text style={styles.orgDotText}>{event.organizerInitials}</Text>
+                        )}
                       </View>
                       <Text style={[styles.eventOrg, { color: colors.mutedForeground }]}>{event.organizer}</Text>
                       {event.isVerified && <Feather name="check-circle" size={11} color={colors.primary} />}
@@ -141,8 +151,9 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 10, letterSpacing: 1.5, fontWeight: '600', marginBottom: 14 },
   orgRow: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 10 },
   rankNum: { fontSize: 14, fontWeight: '800', minWidth: 28 },
-  orgAvatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  orgAvatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   orgAvatarText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  orgAvatarImg: { width: '100%', height: '100%' },
   orgNameRow: { flexDirection: 'row', alignItems: 'center' },
   orgName: { fontSize: 14, fontWeight: '700', flex: 1 },
   orgHandle: { fontSize: 11, marginTop: 2, marginBottom: 4 },
@@ -156,8 +167,9 @@ const styles = StyleSheet.create({
   eventRank: { fontSize: 16, fontWeight: '800', minWidth: 28 },
   eventTitle: { fontSize: 13, fontWeight: '700', marginBottom: 6, lineHeight: 18 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 },
-  orgDot: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  orgDot: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   orgDotText: { color: '#fff', fontSize: 7, fontWeight: '700' },
+  orgDotImg: { width: '100%', height: '100%' },
   eventOrg: { fontSize: 11 },
   barRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bar: { flex: 1, height: 3, borderRadius: 2 },
