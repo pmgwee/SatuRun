@@ -14,8 +14,8 @@ import type { MediaItem } from '@/data/communityData';
 const MIN_AR = 0.65;
 const MAX_AR = 1.4;
 
-function VideoSlide({ uri, width, height }: { uri: string; width: number; height: number }) {
-  const player = useVideoPlayer(uri, p => {
+function VideoSlide({ uri, width, height }: { uri: string | number; width: number; height: number }) {
+  const player = useVideoPlayer(uri as string, p => {
     p.loop = true;
     p.muted = false;
   });
@@ -62,7 +62,7 @@ export function MediaCarousel({ media, width }: MediaCarouselProps) {
           ) : (
             <Image
               key={i}
-              source={{ uri: item.uri }}
+              source={typeof item.uri === 'number' ? item.uri : { uri: item.uri }}
               style={{ width, height }}
               contentFit="cover"
               transition={200}

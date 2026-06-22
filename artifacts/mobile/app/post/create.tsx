@@ -141,7 +141,7 @@ export default function CreatePostScreen() {
               {media.map((m, i) => (
                 <View key={i} style={styles.thumbWrap}>
                   {m.type === 'image' ? (
-                    <Image source={{ uri: m.uri }} style={styles.thumb} contentFit="cover" />
+                    <Image source={{ uri: m.uri as string }} style={styles.thumb} contentFit="cover" />
                   ) : (
                     <View style={[styles.thumb, styles.videoThumb, { backgroundColor: colors.muted }]}>
                       <Feather name="video" size={22} color={colors.mutedForeground} />

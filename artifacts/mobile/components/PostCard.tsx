@@ -45,7 +45,12 @@ export function PostCard({ post, width }: PostCardProps) {
     >
       <View style={{ width, height: coverHeight }}>
         {posterUri ? (
-          <Image source={{ uri: posterUri }} style={styles.cover} contentFit="cover" transition={200} />
+          <Image
+            source={typeof posterUri === 'number' ? posterUri : { uri: posterUri }}
+            style={styles.cover}
+            contentFit="cover"
+            transition={200}
+          />
         ) : (
           <LinearGradient colors={[colors.primary, colors.accentInk]} style={styles.cover} />
         )}

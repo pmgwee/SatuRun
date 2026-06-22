@@ -23,8 +23,8 @@ const FILTERS: { key: FeedFilter; label: string }[] = [
   { key: 'nearby', label: 'Nearby' },
 ];
 
-// Neighborhoods treated as "near you" for the Nearby filter (demo).
-const NEARBY = new Set(['KLCC', 'Bangsar', 'TTDI']);
+const FOLLOWING_IDS = new Set(['p1', 'p3']);
+const NEARBY_IDS = new Set(['p2', 'p5']);
 
 const H_PADDING = 20;
 const COL_GAP = 12;
@@ -42,8 +42,8 @@ export default function CommunityScreen() {
 
   const filtered = useMemo(() => {
     const sorted = [...posts].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
-    if (filter === 'following') return sorted.filter(p => p.isVerified);
-    if (filter === 'nearby') return sorted.filter(p => p.location && NEARBY.has(p.location));
+    if (filter === 'following') return sorted.filter(p => FOLLOWING_IDS.has(p.id));
+    if (filter === 'nearby') return sorted.filter(p => NEARBY_IDS.has(p.id));
     return sorted;
   }, [posts, filter]);
 
