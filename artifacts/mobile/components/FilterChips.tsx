@@ -27,12 +27,12 @@ export function FilterChips({ filters, activeFilter, onFilterChange }: FilterChi
             style={[
               styles.chip,
               {
-                backgroundColor: isActive ? '#CCFF00' : colors.card,
-                borderColor: isActive ? '#CCFF00' : colors.cardBorder,
+                backgroundColor: isActive ? colors.primary : colors.card,
+                borderColor: isActive ? colors.primary : colors.cardBorder,
               },
             ]}
           >
-            <Text style={[styles.chipText, { color: isActive ? '#050505' : colors.mutedForeground }]}>
+            <Text style={[styles.chipText, { color: isActive ? colors.primaryForeground : colors.mutedForeground }]}>
               {filter}
             </Text>
           </TouchableOpacity>

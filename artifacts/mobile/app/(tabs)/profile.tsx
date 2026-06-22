@@ -7,6 +7,7 @@ import { useApp } from '@/context/AppContext';
 import { PAST_RUNS } from '@/data/mockData';
 import { useStrava } from '@/hooks/useStrava';
 import { useColors } from '@/hooks/useColors';
+import { CARD_SHADOW } from '@/constants/brand';
 
 export default function ProfileScreen() {
   const colors = useColors();
@@ -28,10 +29,10 @@ export default function ProfileScreen() {
   ];
 
   const settingsItems = [
-    { icon: 'bell', label: 'Notifications' },
-    { icon: 'shield', label: 'Privacy & Safety' },
-    { icon: 'help-circle', label: 'Help & Support' },
-    { icon: 'info', label: 'About PACE' },
+    { icon: 'bell', label: 'Notifications', message: 'Manage run reminders and group-chat alerts. Coming soon.' },
+    { icon: 'shield', label: 'Privacy & Safety', message: 'Control who can see your runs and message you. Coming soon.' },
+    { icon: 'help-circle', label: 'Help & Support', message: 'Need a hand? Email us at support@saturun.app' },
+    { icon: 'info', label: 'About PACE', message: 'SatuRun (PACE) v1.0.0 — Kuala Lumpur’s running community.' },
   ] as const;
 
   return (
@@ -43,7 +44,11 @@ export default function ProfileScreen() {
             <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
               <Text style={[styles.avatarText, { color: colors.primaryForeground }]}>AC</Text>
             </View>
-            <TouchableOpacity style={[styles.editBtn, { borderColor: colors.border }]}>
+            <TouchableOpacity
+              style={[styles.editBtn, { borderColor: colors.border }]}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('Edit profile', 'Profile editing is coming soon.')}
+            >
               <Feather name="edit-2" size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
@@ -51,7 +56,7 @@ export default function ProfileScreen() {
           <View style={styles.roleRow}>
             <Text style={[styles.userRole, { color: colors.mutedForeground }]}>{userProfile.role}</Text>
             {userProfile.isVerified && (
-              <View style={[styles.verifiedBadge, { backgroundColor: 'rgba(204,255,0,0.1)', borderColor: 'rgba(204,255,0,0.3)' }]}>
+              <View style={[styles.verifiedBadge, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}>
                 <Feather name="check-circle" size={11} color={colors.primary} />
                 <Text style={[styles.verifiedText, { color: colors.primary }]}>Verified</Text>
               </View>
@@ -74,7 +79,7 @@ export default function ProfileScreen() {
           {/* Organizer CTA */}
           <TouchableOpacity
             onPress={() => setShowCreate(true)}
-            style={[styles.organizeCta, { borderColor: 'rgba(204,255,0,0.35)', backgroundColor: 'rgba(204,255,0,0.05)' }]}
+            style={[styles.organizeCta, { borderColor: colors.primaryBorder, backgroundColor: colors.primarySoft }]}
             activeOpacity={0.8}
           >
             <View style={[styles.organizeIcon, { backgroundColor: colors.primary }]}>
@@ -130,9 +135,9 @@ export default function ProfileScreen() {
             {stravaLoading ? (
               <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>Loading…</Text>
             ) : stravaConnection.isConnected ? (
-              <View style={styles.connectedBadge}>
-                <Feather name="check-circle" size={11} color="#CCFF00" />
-                <Text style={styles.connectedBadgeText}>Connected</Text>
+              <View style={[styles.connectedBadge, { backgroundColor: colors.primarySoft }]}>
+                <Feather name="check-circle" size={11} color={colors.accentInk} />
+                <Text style={[styles.connectedBadgeText, { color: colors.accentInk }]}>Connected</Text>
               </View>
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -170,7 +175,7 @@ export default function ProfileScreen() {
               <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 8 }]}>Your Events</Text>
               {hostedEvents.map(event => (
                 <View key={event.id} style={[styles.hostedRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                  <View style={[styles.hostedIcon, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
+                  <View style={[styles.hostedIcon, { backgroundColor: colors.primarySoft }]}>
                     <Feather name="flag" size={16} color={colors.primary} />
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
@@ -179,7 +184,7 @@ export default function ProfileScreen() {
                       {event.neighborhood} · {event.distance}
                     </Text>
                   </View>
-                  <View style={[styles.participantBadge, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
+                  <View style={[styles.participantBadge, { backgroundColor: colors.primarySoft }]}>
                     <Text style={[styles.participantBadgeText, { color: colors.primary }]}>
                       {event.participantsCount}
                     </Text>
@@ -196,6 +201,7 @@ export default function ProfileScreen() {
               key={item.label}
               style={[styles.settingRow, { borderBottomColor: i < settingsItems.length - 1 ? colors.border : 'transparent' }]}
               activeOpacity={0.7}
+              onPress={() => Alert.alert(item.label, item.message)}
             >
               <View style={[styles.settingIconWrap, { backgroundColor: colors.card }]}>
                 <Feather name={item.icon} size={16} color={colors.mutedForeground} />
@@ -229,12 +235,12 @@ const styles = StyleSheet.create({
   statNum: { fontSize: 24, fontWeight: '700' },
   statLabel: { fontSize: 11 },
   statDivider: { width: 1, height: 36 },
-  organizeCta: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1.5, padding: 16, marginBottom: 24 },
+  organizeCta: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1.5, padding: 16, marginBottom: 24 },
   organizeIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   organizeTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
   organizeSub: { fontSize: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  hostedRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
+  hostedRow: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
   hostedIcon: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   hostedTitle: { fontSize: 13, fontWeight: '600', marginBottom: 3 },
   hostedMeta: { fontSize: 11 },
@@ -247,9 +253,8 @@ const styles = StyleSheet.create({
   connectedBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
-    backgroundColor: 'rgba(204,255,0,0.1)',
   },
-  connectedBadgeText: { fontSize: 11, fontWeight: '600', color: '#CCFF00' },
+  connectedBadgeText: { fontSize: 11, fontWeight: '600' },
   connectText: { fontSize: 13, fontWeight: '600' },
   loadingText: { fontSize: 12 },
   comingSoonBadge: {

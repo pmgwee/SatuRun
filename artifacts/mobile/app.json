@@ -6,20 +6,20 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "saturun",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#050505"
+      "backgroundColor": "#0E1311"
     },
     "ios": {
       "supportsTablet": false,
-      "userInterfaceStyle": "dark",
+      "userInterfaceStyle": "automatic",
       "bundleIdentifier": "com.saturun.app"
     },
     "android": {
-      "userInterfaceStyle": "dark",
+      "userInterfaceStyle": "automatic",
       "package": "com.saturun.app"
     },
     "web": {

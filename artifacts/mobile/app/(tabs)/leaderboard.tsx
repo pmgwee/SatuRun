@@ -4,6 +4,7 @@ import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { INITIAL_EVENTS, ORGANIZERS, type Organizer } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
+import { CARD_SHADOW } from '@/constants/brand';
 
 const GOLD = '#FFD700';
 const SILVER = '#C0C0C0';
@@ -28,14 +29,14 @@ function OrgRow({ org, rank }: OrgRowProps) {
       <View style={{ flex: 1, marginLeft: 12 }}>
         <View style={styles.orgNameRow}>
           <Text style={[styles.orgName, { color: colors.foreground }]} numberOfLines={1}>{org.name}</Text>
-          {org.isVerified && <Feather name="check-circle" size={12} color="#CCFF00" style={{ marginLeft: 4 }} />}
+          {org.isVerified && <Feather name="check-circle" size={12} color={colors.accentInk} style={{ marginLeft: 4 }} />}
         </View>
         <Text style={[styles.orgHandle, { color: colors.mutedForeground }]}>{org.handle}</Text>
         <View style={styles.orgStats}>
           <Text style={[styles.orgRunners, { color: colors.primary }]}>{org.activeRunners.toLocaleString()} runners</Text>
-          <View style={[styles.growthBadge, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
-            <Feather name="trending-up" size={10} color="#CCFF00" />
-            <Text style={styles.growthText}>+{org.weeklyGrowth}%</Text>
+          <View style={[styles.growthBadge, { backgroundColor: colors.primarySoft }]}>
+            <Feather name="trending-up" size={10} color={colors.accentInk} />
+            <Text style={[styles.growthText, { color: colors.accentInk }]}>+{org.weeklyGrowth}%</Text>
           </View>
         </View>
       </View>
@@ -44,13 +45,13 @@ function OrgRow({ org, rank }: OrgRowProps) {
         style={[
           styles.followBtn,
           {
-            backgroundColor: following ? 'transparent' : '#CCFF00',
+            backgroundColor: following ? 'transparent' : colors.primary,
             borderWidth: following ? 1 : 0,
-            borderColor: '#CCFF00',
+            borderColor: colors.primary,
           },
         ]}
       >
-        <Text style={[styles.followText, { color: following ? '#CCFF00' : '#050505' }]}>
+        <Text style={[styles.followText, { color: following ? colors.primary : colors.primaryForeground }]}>
           {following ? 'Following' : 'Follow'}
         </Text>
       </TouchableOpacity>
@@ -117,7 +118,7 @@ export default function LeaderboardScreen() {
                       <Text style={[styles.barLabel, { color: colors.mutedForeground }]}>{event.participantsCount}</Text>
                     </View>
                   </View>
-                  <View style={[styles.distBadge, { backgroundColor: 'rgba(204,255,0,0.08)' }]}>
+                  <View style={[styles.distBadge, { backgroundColor: colors.primarySoft }]}>
                     <Text style={[styles.distText, { color: colors.primary }]}>{event.distance}</Text>
                   </View>
                 </View>
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   toggleBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
   toggleText: { fontSize: 13, fontWeight: '600' },
   sectionLabel: { fontSize: 10, letterSpacing: 1.5, fontWeight: '600', marginBottom: 14 },
-  orgRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 10 },
+  orgRow: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 10 },
   rankNum: { fontSize: 14, fontWeight: '800', minWidth: 28 },
   orgAvatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   orgAvatarText: { color: '#fff', fontSize: 13, fontWeight: '700' },
@@ -148,10 +149,10 @@ const styles = StyleSheet.create({
   orgStats: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   orgRunners: { fontSize: 11, fontWeight: '600' },
   growthBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 10 },
-  growthText: { color: '#CCFF00', fontSize: 10, fontWeight: '600' },
+  growthText: { fontSize: 10, fontWeight: '600' },
   followBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18 },
   followText: { fontSize: 12, fontWeight: '600' },
-  eventRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10 },
+  eventRow: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10 },
   eventRank: { fontSize: 16, fontWeight: '800', minWidth: 28 },
   eventTitle: { fontSize: 13, fontWeight: '700', marginBottom: 6, lineHeight: 18 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 },

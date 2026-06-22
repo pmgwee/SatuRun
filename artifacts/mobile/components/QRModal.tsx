@@ -56,7 +56,7 @@ export function QRModal({ event, visible, onClose }: QRModalProps) {
           <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>{event.title}</Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>{event.neighborhood} · {event.displayTime}</Text>
 
-          <View style={[styles.qrWrap, { borderColor: 'rgba(204,255,0,0.3)' }]}>
+          <View style={[styles.qrWrap, { borderColor: colors.primaryBorder }]}>
             <Svg width={QR_SIZE} height={QR_SIZE}>
               {QR_MATRIX.map((row, ri) =>
                 row.map((cell, ci) =>
@@ -75,8 +75,8 @@ export function QRModal({ event, visible, onClose }: QRModalProps) {
             <Text style={[styles.idValue, { color: colors.foreground }]}>PACE-{event.id?.toUpperCase()}-2026</Text>
           </View>
 
-          <TouchableOpacity onPress={onClose} style={[styles.doneBtn, { backgroundColor: '#CCFF00' }]}>
-            <Text style={[styles.doneBtnText, { color: '#050505' }]}>Done</Text>
+          <TouchableOpacity onPress={onClose} style={[styles.doneBtn, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.doneBtnText, { color: colors.primaryForeground }]}>Done</Text>
           </TouchableOpacity>
         </View>
       </View>

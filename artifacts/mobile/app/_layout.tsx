@@ -10,7 +10,15 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
+import Constants from "expo-constants";
+
+// react-native-keyboard-controller is a native module that is NOT bundled in Expo Go.
+// Use the real provider in dev/standalone builds; fall back to a passthrough in Expo Go
+// so the app still launches there.
+const isExpoGo = Constants.appOwnership === "expo";
+const KeyboardProvider: React.ComponentType<{ children: React.ReactNode }> = isExpoGo
+  ? ({ children }) => <>{children}</>
+  : require("react-native-keyboard-controller").KeyboardProvider;
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -26,6 +34,9 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="chat/[runId]" options={{ headerShown: false }} />
+      <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="post/create" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

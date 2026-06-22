@@ -19,18 +19,20 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/context/AppContext';
 import { CATEGORY_GRADIENTS, RunningEvent } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
+import { ACCENT_ON_DARK } from '@/constants/brand';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Tempo: '#8B5CF6',
-  Easy: '#10B981',
-  Trail: '#F59E0B',
-  Interval: '#EF4444',
-  Night: '#0EA5E9',
-  Community: '#06B6D4',
+  Tempo: '#6E9B7A',
+  Easy: '#7FA862',
+  Trail: '#B08D57',
+  Interval: '#C97B5A',
+  Night: '#5C8A86',
+  Community: '#5AA0A0',
 };
 
 interface EventBottomSheetProps {
@@ -50,9 +52,16 @@ function EventDetailView({
 }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { savedEventIds, joinedEventIds, toggleSaveEvent, toggleJoinEvent } = useApp();
   const isSaved = savedEventIds.includes(event.id);
   const isJoined = joinedEventIds.includes(event.id);
+
+  const handleChat = () => {
+    Haptics.selectionAsync();
+    router.push({ pathname: '/chat/[runId]', params: { runId: event.id } });
+    onClose();
+  };
   const fillPercent = Math.round((event.participantsCount / event.maxParticipants) * 100);
   const gradientColors = CATEGORY_GRADIENTS[event.category];
 
@@ -73,7 +82,7 @@ function EventDetailView({
           <Text style={[styles.backText, { color: colors.foreground }]}>All Runs</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Feather name="heart" size={20} color={isSaved ? '#CCFF00' : colors.mutedForeground} />
+          <Feather name="heart" size={20} color={isSaved ? colors.accentInk : colors.mutedForeground} />
         </TouchableOpacity>
       </View>
 
@@ -88,7 +97,7 @@ function EventDetailView({
               <Text style={styles.orgAvatarText}>{event.organizerInitials}</Text>
             </View>
             <Text style={styles.orgName}>{event.organizer}</Text>
-            {event.isVerified && <Feather name="check-circle" size={13} color="#CCFF00" style={{ marginLeft: 4 }} />}
+            {event.isVerified && <Feather name="check-circle" size={13} color={ACCENT_ON_DARK} style={{ marginLeft: 4 }} />}
           </View>
         </LinearGradient>
 
@@ -121,9 +130,9 @@ function EventDetailView({
           </View>
 
           {event.hasVoucher && (
-            <View style={[styles.voucherBanner, { backgroundColor: 'rgba(204,255,0,0.07)', borderColor: 'rgba(204,255,0,0.2)' }]}>
-              <Feather name="gift" size={14} color="#CCFF00" />
-              <Text style={styles.voucherText}>{event.voucherDescription}</Text>
+            <View style={[styles.voucherBanner, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}>
+              <Feather name="gift" size={14} color={colors.accentInk} />
+              <Text style={[styles.voucherText, { color: colors.accentInk }]}>{event.voucherDescription}</Text>
             </View>
           )}
 
@@ -142,6 +151,17 @@ function EventDetailView({
               {isJoined ? 'Leave Run' : 'Join Event'}
             </Text>
           </TouchableOpacity>
+
+          {isJoined && (
+            <TouchableOpacity
+              onPress={handleChat}
+              activeOpacity={0.85}
+              style={[styles.chatBtn, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}
+            >
+              <Feather name="message-circle" size={16} color={colors.accentInk} />
+              <Text style={[styles.chatBtnText, { color: colors.accentInk }]}>Open Group Chat</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -233,7 +253,7 @@ export function EventBottomSheet({ events, neighborhood, onClose }: EventBottomS
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
             >
               {events.map((event, index) => {
-                const catColor = CATEGORY_COLORS[event.category] ?? '#CCFF00';
+                const catColor = CATEGORY_COLORS[event.category] ?? colors.primary;
                 const fillPct = Math.round((event.participantsCount / event.maxParticipants) * 100);
                 return (
                   <TouchableOpacity
@@ -259,9 +279,9 @@ export function EventBottomSheet({ events, neighborhood, onClose }: EventBottomS
                           <Text style={[styles.eventCatText, { color: catColor }]}>{event.category}</Text>
                         </View>
                         {event.hasVoucher && (
-                          <View style={styles.voucherChip}>
-                            <Feather name="gift" size={10} color="#CCFF00" />
-                            <Text style={styles.voucherChipText}>Voucher</Text>
+                          <View style={[styles.voucherChip, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}>
+                            <Feather name="gift" size={10} color={colors.accentInk} />
+                            <Text style={[styles.voucherChipText, { color: colors.accentInk }]}>Voucher</Text>
                           </View>
                         )}
                         <View style={{ flex: 1 }} />
@@ -349,8 +369,8 @@ const styles = StyleSheet.create({
   eventRowTop: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   eventCatChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1 },
   eventCatText: { fontSize: 10, fontWeight: '600', letterSpacing: 0.3 },
-  voucherChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, backgroundColor: 'rgba(204,255,0,0.08)', borderWidth: 1, borderColor: 'rgba(204,255,0,0.2)' },
-  voucherChipText: { color: '#CCFF00', fontSize: 9, fontWeight: '600' },
+  voucherChip: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, borderWidth: 1 },
+  voucherChipText: { fontSize: 9, fontWeight: '600' },
   eventDist: { fontSize: 12, fontWeight: '700' },
   eventTitle: { fontSize: 14, fontWeight: '700', lineHeight: 20, marginBottom: 6 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 },
@@ -389,7 +409,9 @@ const styles = StyleSheet.create({
   progFill: { height: 4, borderRadius: 2 },
   progText: { fontSize: 11 },
   voucherBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 10, borderWidth: 1, marginBottom: 14 },
-  voucherText: { color: '#CCFF00', fontSize: 12, fontWeight: '500', flex: 1 },
+  voucherText: { fontSize: 12, fontWeight: '500', flex: 1 },
   joinBtn: { borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   joinBtnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
+  chatBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 14, marginTop: 10, borderWidth: 1.5 },
+  chatBtnText: { fontSize: 14, fontWeight: '700' },
 });

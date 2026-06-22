@@ -558,13 +558,35 @@ export const LOCATION_OPTIONS = [
 
 export const DISTANCE_OPTIONS = ['3KM', '5KM', '6KM', '7KM', '8KM', '10KM', '15KM', '21KM'];
 
+// Real Kuala Lumpur coordinates per neighborhood — used to plot events on the live map.
+export const KL_CENTER = { lat: 3.152, lng: 101.668 };
+
+export const NEIGHBORHOOD_COORDS: Record<string, { lat: number; lng: number }> = {
+  'TTDI': { lat: 3.1370, lng: 101.6300 },
+  'Mont Kiara': { lat: 3.1725, lng: 101.6520 },
+  'Desa ParkCity': { lat: 3.1870, lng: 101.6310 },
+  'Bangsar': { lat: 3.1280, lng: 101.6700 },
+  'KLCC': { lat: 3.1580, lng: 101.7140 },
+  'Kiara Hill': { lat: 3.1500, lng: 101.6470 },
+};
+
+/** Resolve a neighborhood name to coordinates, with a fuzzy fallback for user-created events. */
+export function coordsForNeighborhood(neighborhood: string): { lat: number; lng: number } {
+  if (NEIGHBORHOOD_COORDS[neighborhood]) return NEIGHBORHOOD_COORDS[neighborhood];
+  const key = Object.keys(NEIGHBORHOOD_COORDS).find(
+    k => k.toLowerCase().startsWith(neighborhood.toLowerCase()) ||
+         neighborhood.toLowerCase().startsWith(k.toLowerCase()),
+  );
+  return key ? NEIGHBORHOOD_COORDS[key] : KL_CENTER;
+}
+
 export const CATEGORY_GRADIENTS: Record<EventCategory, [string, string]> = {
-  Tempo: ['#0D0B1E', '#1A0A2E'],
-  Easy: ['#071A0F', '#0A2818'],
-  Trail: ['#1A1208', '#2A1808'],
-  Interval: ['#1A0808', '#2A1010'],
-  Night: ['#080814', '#10102A'],
-  Community: ['#081018', '#0A1A28'],
+  Tempo: ['#1F3D2E', '#11261C'],
+  Easy: ['#2E5E3A', '#1B3B24'],
+  Trail: ['#3D3320', '#241C10'],
+  Interval: ['#3A2A1E', '#241710'],
+  Night: ['#15241F', '#0C1714'],
+  Community: ['#1E3A3A', '#102524'],
 };
 
 // ── Strava mock data (pre-loaded for demo) ────────────────────

@@ -69,7 +69,7 @@ export function CreateRunModal({ visible, onClose }: CreateRunModalProps) {
       organizer: 'Alex Chen',
       organizerHandle: '@alexchen',
       organizerInitials: 'AC',
-      organizerColor: '#CCFF00',
+      organizerColor: '#7FA862',
       isVerified: false,
       location: form.location || 'TTDI Park',
       neighborhood: form.location.split(' ')[0] || 'TTDI',
@@ -137,8 +137,8 @@ export function CreateRunModal({ visible, onClose }: CreateRunModalProps) {
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {submitted ? (
               <View style={styles.successView}>
-                <View style={[styles.successIcon, { backgroundColor: 'rgba(204,255,0,0.1)' }]}>
-                  <Feather name="check" size={32} color="#CCFF00" />
+                <View style={[styles.successIcon, { backgroundColor: colors.primarySoft }]}>
+                  <Feather name="check" size={32} color={colors.accentInk} />
                 </View>
                 <Text style={[styles.successTitle, { color: colors.foreground }]}>Run Created</Text>
                 <Text style={[styles.successSub, { color: colors.mutedForeground }]}>
@@ -213,16 +213,16 @@ export function CreateRunModal({ visible, onClose }: CreateRunModalProps) {
                     style={[
                       styles.locationOption,
                       {
-                        backgroundColor: form.location === loc ? 'rgba(204,255,0,0.07)' : colors.muted,
+                        backgroundColor: form.location === loc ? colors.primarySoft : colors.muted,
                         borderColor: form.location === loc ? colors.primary : colors.border,
                       },
                     ]}
                   >
-                    <Feather name="map-pin" size={14} color={form.location === loc ? '#CCFF00' : colors.mutedForeground} />
-                    <Text style={{ color: form.location === loc ? '#CCFF00' : colors.foreground, marginLeft: 10, fontSize: 13, fontWeight: '500', flex: 1 }}>
+                    <Feather name="map-pin" size={14} color={form.location === loc ? colors.accentInk : colors.mutedForeground} />
+                    <Text style={{ color: form.location === loc ? colors.accentInk : colors.foreground, marginLeft: 10, fontSize: 13, fontWeight: '500', flex: 1 }}>
                       {loc}
                     </Text>
-                    {form.location === loc && <Feather name="check" size={14} color="#CCFF00" />}
+                    {form.location === loc && <Feather name="check" size={14} color={colors.accentInk} />}
                   </TouchableOpacity>
                 ))}
                 <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginTop: 16 }]}>Distance *</Text>
@@ -260,14 +260,14 @@ export function CreateRunModal({ visible, onClose }: CreateRunModalProps) {
                     <Switch
                       value={form.hasVoucher}
                       onValueChange={v => update('hasVoucher', v)}
-                      trackColor={{ false: colors.border, true: 'rgba(204,255,0,0.4)' }}
-                      thumbColor={form.hasVoucher ? '#CCFF00' : colors.mutedForeground}
+                      trackColor={{ false: colors.border, true: colors.primaryBorder }}
+                      thumbColor={form.hasVoucher ? colors.primary : colors.mutedForeground}
                     />
                   </View>
                   {form.hasVoucher && (
                     <View style={[styles.voucherPreview, { borderTopColor: colors.border }]}>
-                      <Feather name="gift" size={14} color="#CCFF00" />
-                      <Text style={{ color: '#CCFF00', fontSize: 12, fontWeight: '500', flex: 1 }}>
+                      <Feather name="gift" size={14} color={colors.accentInk} />
+                      <Text style={{ color: colors.accentInk, fontSize: 12, fontWeight: '500', flex: 1 }}>
                         ZUS Coffee Voucher awarded to all finishers
                       </Text>
                     </View>
@@ -293,8 +293,8 @@ export function CreateRunModal({ visible, onClose }: CreateRunModalProps) {
                   ))}
                   {form.hasVoucher && (
                     <View style={styles.previewRow}>
-                      <Feather name="gift" size={13} color="#CCFF00" />
-                      <Text style={{ color: '#CCFF00', fontSize: 13 }}>ZUS Coffee Voucher included</Text>
+                      <Feather name="gift" size={13} color={colors.accentInk} />
+                      <Text style={{ color: colors.accentInk, fontSize: 13 }}>ZUS Coffee Voucher included</Text>
                     </View>
                   )}
                 </View>

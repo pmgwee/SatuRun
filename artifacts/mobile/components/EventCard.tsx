@@ -7,6 +7,7 @@ import { useApp } from '@/context/AppContext';
 import { CATEGORY_GRADIENTS, RunningEvent } from '@/data/mockData';
 import { PARTNERS } from '@/data/rewardsData';
 import { useColors } from '@/hooks/useColors';
+import { ACCENT_ON_DARK, ACCENT_ON_DARK_INK } from '@/constants/brand';
 
 interface EventCardProps {
   event: RunningEvent;
@@ -39,7 +40,7 @@ export function EventCard({ event, onPress }: EventCardProps) {
             <Text style={styles.categoryText}>{event.category.toUpperCase()}</Text>
           </View>
           <TouchableOpacity onPress={handleSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Feather name="heart" size={18} color={isSaved ? '#CCFF00' : 'rgba(255,255,255,0.45)'} />
+            <Feather name="heart" size={18} color={isSaved ? ACCENT_ON_DARK : 'rgba(255,255,255,0.45)'} />
           </TouchableOpacity>
         </View>
         <View style={styles.orgRow}>
@@ -60,11 +61,11 @@ export function EventCard({ event, onPress }: EventCardProps) {
           <View style={{ flex: 1, marginLeft: 8 }}>
             <View style={styles.orgNameRow}>
               <Text style={styles.orgName} numberOfLines={1}>{event.organizer}</Text>
-              {event.isVerified && <Feather name="check-circle" size={12} color="#CCFF00" style={{ marginLeft: 4 }} />}
+              {event.isVerified && <Feather name="check-circle" size={12} color={ACCENT_ON_DARK} style={{ marginLeft: 4 }} />}
             </View>
             <Text style={styles.orgHandle}>{event.organizerHandle}</Text>
           </View>
-          <View style={[styles.distBadge, { backgroundColor: '#CCFF00' }]}>
+          <View style={[styles.distBadge, { backgroundColor: ACCENT_ON_DARK }]}>
             <Text style={styles.distText}>{event.distance}</Text>
           </View>
         </View>
@@ -84,16 +85,16 @@ export function EventCard({ event, onPress }: EventCardProps) {
         </View>
 
         {event.hasVoucher && (
-          <View style={styles.voucherRow}>
-            <Feather name="gift" size={11} color="#CCFF00" />
-            <Text style={styles.voucherText} numberOfLines={1}>{event.voucherDescription}</Text>
+          <View style={[styles.voucherRow, { backgroundColor: colors.primarySoft, borderColor: colors.primaryBorder }]}>
+            <Feather name="gift" size={11} color={colors.accentInk} />
+            <Text style={[styles.voucherText, { color: colors.accentInk }]} numberOfLines={1}>{event.voucherDescription}</Text>
           </View>
         )}
 
         <View style={styles.bottomRow}>
           <View style={{ flex: 1 }}>
             <View style={[styles.progBg, { backgroundColor: colors.muted }]}>
-              <View style={[styles.progFill, { width: `${fillPercent}%`, backgroundColor: '#CCFF00' }]} />
+              <View style={[styles.progFill, { width: `${fillPercent}%`, backgroundColor: colors.primary }]} />
             </View>
             <Text style={[styles.participantsText, { color: colors.mutedForeground }]}>
               {event.participantsCount}/{event.maxParticipants} joined
@@ -104,13 +105,13 @@ export function EventCard({ event, onPress }: EventCardProps) {
             style={[
               styles.joinBtn,
               {
-                backgroundColor: isJoined ? 'transparent' : '#CCFF00',
+                backgroundColor: isJoined ? 'transparent' : colors.primary,
                 borderWidth: isJoined ? 1 : 0,
-                borderColor: '#CCFF00',
+                borderColor: colors.primary,
               },
             ]}
           >
-            <Text style={[styles.joinBtnText, { color: isJoined ? '#CCFF00' : '#050505' }]}>
+            <Text style={[styles.joinBtnText, { color: isJoined ? colors.primary : colors.primaryForeground }]}>
               {isJoined ? 'Joined' : 'Join Run'}
             </Text>
           </TouchableOpacity>
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   orgName: { color: '#fff', fontSize: 13, fontWeight: '600' },
   orgHandle: { color: 'rgba(255,255,255,0.5)', fontSize: 11 },
   distBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  distText: { fontSize: 12, fontWeight: '700', color: '#050505' },
+  distText: { fontSize: 12, fontWeight: '700', color: ACCENT_ON_DARK_INK },
   details: { padding: 14 },
   title: { fontSize: 15, fontWeight: '700', marginBottom: 8, lineHeight: 20 },
   metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', rowGap: 4, columnGap: 4, marginBottom: 8 },
@@ -143,10 +144,10 @@ const styles = StyleSheet.create({
   voucherRow: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
-    backgroundColor: 'rgba(204,255,0,0.08)', borderWidth: 1, borderColor: 'rgba(204,255,0,0.2)',
+    borderWidth: 1,
     marginBottom: 10,
   },
-  voucherText: { color: '#CCFF00', fontSize: 11, fontWeight: '500', flex: 1 },
+  voucherText: { fontSize: 11, fontWeight: '500', flex: 1 },
   bottomRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   progBg: { height: 3, borderRadius: 2, marginBottom: 4 },
   progFill: { height: 3, borderRadius: 2 },

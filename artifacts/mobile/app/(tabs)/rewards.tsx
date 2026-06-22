@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
+  Alert,
   Image,
   Platform,
   ScrollView,
@@ -24,6 +25,7 @@ import {
   type Mission,
   type VoucherTemplate,
 } from '@/data/rewardsData';
+import { ACCENT_ON_DARK, CARD_SHADOW } from '@/constants/brand';
 
 type RewardTab = 'missions' | 'redeem' | 'my-rewards';
 type VoucherFilter = 'active' | 'past';
@@ -43,6 +45,7 @@ export default function RewardsScreen() {
     startMission,
     claimMissionReward,
     redeemVoucher,
+    useVoucher,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<RewardTab>('missions');
@@ -81,7 +84,7 @@ export default function RewardsScreen() {
 
         {/* Points Hero */}
         <View style={styles.pointsHero}>
-          <View style={[styles.pointsCircle, { backgroundColor: colors.card, borderColor: 'rgba(204,255,0,0.3)' }]}>
+          <View style={[styles.pointsCircle, { backgroundColor: colors.card, borderColor: colors.primaryBorder }]}>
             <View style={styles.pointsRing}>
               <Feather name="zap" size={28} color={colors.primary} />
             </View>
@@ -143,7 +146,7 @@ export default function RewardsScreen() {
           />
           <View style={styles.heroOverlay} />
           <View style={styles.heroContent}>
-            <Feather name="zap" size={20} color={colors.primary} />
+            <Feather name="zap" size={20} color={ACCENT_ON_DARK} />
             <Text style={styles.heroTitle}>Run. Earn. Redeem.</Text>
             <Text style={styles.heroSubtitle}>Complete missions & check in daily to earn SatuRun Points</Text>
           </View>
@@ -175,7 +178,7 @@ export default function RewardsScreen() {
                         backgroundColor: isCompleted || isTodayDone
                           ? colors.primary
                           : isCurrent
-                          ? 'rgba(204,255,0,0.12)'
+                          ? colors.primarySoft
                           : colors.muted,
                         borderWidth: isCurrent ? 2 : 0,
                         borderColor: isCurrent ? colors.primary : 'transparent',
@@ -262,7 +265,7 @@ export default function RewardsScreen() {
             { icon: 'check-circle', text: 'Earn Points & Redeem Rewards' },
           ].map((step, i) => (
             <View key={i} style={styles.howStep}>
-              <View style={[styles.howIcon, { backgroundColor: 'rgba(204,255,0,0.1)' }]}>
+              <View style={[styles.howIcon, { backgroundColor: colors.primarySoft }]}>
                 <Feather name={step.icon as any} size={16} color={colors.primary} />
               </View>
               <Text style={{ color: colors.mutedForeground, fontSize: 13, flex: 1 }}>
@@ -376,7 +379,7 @@ export default function RewardsScreen() {
                     <View style={styles.redeemInfoCol}>
                       <Text style={{ color: colors.mutedForeground, fontSize: 10 }}>Redeem With</Text>
                       <View style={styles.redeemPointsRow}>
-                        <View style={[styles.miniIcon, { backgroundColor: 'rgba(204,255,0,0.12)' }]}>
+                        <View style={[styles.miniIcon, { backgroundColor: colors.primarySoft }]}>
                           <Feather name="zap" size={9} color={colors.primary} />
                         </View>
                         <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }}>
@@ -545,6 +548,16 @@ export default function RewardsScreen() {
                   <TouchableOpacity
                     style={[styles.useBtn, { backgroundColor: v.partnerColor }]}
                     activeOpacity={0.8}
+                    onPress={() =>
+                      Alert.alert(
+                        'Use voucher?',
+                        `Redeem "${v.title}" at ${v.partnerName} now? This marks it as used.`,
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Use Now', onPress: () => useVoucher(v.id) },
+                        ],
+                      )
+                    }
                   >
                     <Text style={styles.useBtnText}>Use Now</Text>
                   </TouchableOpacity>
@@ -554,13 +567,13 @@ export default function RewardsScreen() {
                       styles.statusBadge,
                       {
                         backgroundColor:
-                          v.status === 'used' ? 'rgba(16,185,129,0.12)' : 'rgba(255,69,58,0.12)',
+                          v.status === 'used' ? colors.successSoft : colors.dangerSoft,
                       },
                     ]}
                   >
                     <Text
                       style={{
-                        color: v.status === 'used' ? '#10B981' : '#FF453A',
+                        color: v.status === 'used' ? colors.success : colors.danger,
                         fontSize: 11,
                         fontWeight: '600',
                       }}
@@ -601,7 +614,7 @@ function MissionCard({
         <View
           style={[
             styles.missionIcon,
-            { backgroundColor: isActive ? 'rgba(204,255,0,0.1)' : colors.muted },
+            { backgroundColor: isActive ? colors.primarySoft : colors.muted },
           ]}
         >
           <Feather
@@ -635,7 +648,7 @@ function MissionCard({
       {/* Points + Time */}
       <View style={styles.missionMeta}>
         <View style={styles.missionPointsRow}>
-          <View style={[styles.miniIcon, { backgroundColor: 'rgba(204,255,0,0.12)' }]}>
+          <View style={[styles.miniIcon, { backgroundColor: colors.primarySoft }]}>
             <Feather name="zap" size={9} color={colors.primary} />
           </View>
           <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '700' }}>
@@ -659,7 +672,7 @@ function MissionCard({
                 styles.progressFill,
                 {
                   backgroundColor:
-                    mission.status === 'completed' ? colors.primary : 'rgba(204,255,0,0.5)',
+                    mission.status === 'completed' ? colors.primary : colors.primaryBorder,
                   width: `${pct}%`,
                 },
               ]}
@@ -684,7 +697,7 @@ function MissionCard({
             </Text>
           </TouchableOpacity>
         ) : mission.status === 'in_progress' ? (
-          <View style={[styles.missionBtnOutline, { borderColor: 'rgba(204,255,0,0.3)' }]}>
+          <View style={[styles.missionBtnOutline, { borderColor: colors.primaryBorder }]}>
             <Text style={{ color: colors.primary, fontSize: 11, fontWeight: '700' }}>
               In Progress
             </Text>
@@ -734,7 +747,7 @@ const styles = StyleSheet.create({
   heroContent: {
     position: 'absolute', bottom: 16, left: 18, right: 18, gap: 4,
   },
-  heroTitle: { color: '#CCFF00', fontSize: 22, fontWeight: '800' },
+  heroTitle: { color: ACCENT_ON_DARK, fontSize: 22, fontWeight: '800' },
   heroSubtitle: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
 
   // ─ Header
@@ -760,6 +773,7 @@ const styles = StyleSheet.create({
 
   // ─ Check-in
   checkInCard: {
+    ...CARD_SHADOW,
     borderRadius: 16, padding: 18, borderWidth: 1, gap: 14,
   },
   checkInHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -783,6 +797,7 @@ const styles = StyleSheet.create({
   // ─ Missions grid
   missionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   missionCard: {
+    ...CARD_SHADOW,
     width: '47%', borderRadius: 16, padding: 14, borderWidth: 1, gap: 6,
   },
   missionBanner: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
@@ -891,6 +906,7 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
 
   voucherCard: {
+    ...CARD_SHADOW,
     borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 12, gap: 12,
   },
   voucherTop: { flexDirection: 'row', alignItems: 'flex-start' },

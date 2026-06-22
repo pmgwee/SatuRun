@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventBottomSheet } from '@/components/EventBottomSheet';
 import { FilterChips } from '@/components/FilterChips';
-import { MapCanvas } from '@/components/MapCanvas';
+import { MapWebView } from '@/components/MapWebView';
 import { useTheme } from '@/context/ThemeContext';
 import { useApp } from '@/context/AppContext';
 import { RunningEvent } from '@/data/mockData';
@@ -18,23 +18,53 @@ export default function DiscoverScreen() {
   const colors = useColors();
   const { isDark, toggleTheme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { events } = useApp();
+  const { events, joinedEventIds } = useApp();
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedArea, setSelectedArea] = useState<SelectedArea | null>(null);
-  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   const filteredEvents = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return events.filter(e => {
-      if (activeFilter === 'All') return true;
-      if (activeFilter === 'Morning Pace') return e.time < '12:00';
-      if (activeFilter === 'Night Trails') return e.time >= '18:00';
-      if (activeFilter === 'Beginner Friendly') return e.category === 'Easy' || e.category === 'Community';
-      if (activeFilter === 'Community Run') return e.category === 'Community';
-      if (activeFilter === 'Elite') return e.category === 'Tempo' || e.category === 'Interval';
-      return true;
+      let pass = true;
+      if (activeFilter === 'Morning Pace') pass = e.time < '12:00';
+      else if (activeFilter === 'Night Trails') pass = e.time >= '18:00';
+      else if (activeFilter === 'Beginner Friendly') pass = e.category === 'Easy' || e.category === 'Community';
+      else if (activeFilter === 'Community Run') pass = e.category === 'Community';
+      else if (activeFilter === 'Elite') pass = e.category === 'Tempo' || e.category === 'Interval';
+      if (!pass) return false;
+      if (!q) return true;
+      return (
+        e.title.toLowerCase().includes(q) ||
+        e.organizer.toLowerCase().includes(q) ||
+        e.neighborhood.toLowerCase().includes(q) ||
+        e.location.toLowerCase().includes(q)
+      );
     });
-  }, [events, activeFilter]);
+  }, [events, activeFilter, query]);
+
+  const showNotifications = () => {
+    const now = Date.now();
+    const upcoming = events.filter(
+      e => joinedEventIds.includes(e.id) && new Date(`${e.date}T${e.time}:00`).getTime() > now,
+    );
+    Alert.alert(
+      'Notifications',
+      upcoming.length
+        ? `You have ${upcoming.length} upcoming run${upcoming.length > 1 ? 's' : ''}:\n\n` +
+            upcoming.slice(0, 4).map(e => `• ${e.title} — ${e.displayTime}`).join('\n')
+        : "You're all caught up. Join a run to get reminders here.",
+    );
+  };
+
+  const toggleSearch = () =>
+    setSearchOpen(o => {
+      const next = !o;
+      if (!next) setQuery('');
+      return next;
+    });
 
   const handleAreaPress = (areaEvents: RunningEvent[], neighborhood: string) => {
     setSelectedArea({ events: areaEvents, neighborhood });
@@ -61,10 +91,18 @@ export default function DiscoverScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-              <Feather name="search" size={18} color={colors.foreground} />
+            <TouchableOpacity
+              style={[styles.iconBtn, { backgroundColor: searchOpen ? colors.primary : colors.card, borderColor: colors.cardBorder }]}
+              onPress={toggleSearch}
+              activeOpacity={0.7}
+            >
+              <Feather name="search" size={18} color={searchOpen ? colors.primaryForeground : colors.foreground} />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <TouchableOpacity
+              style={[styles.iconBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+              onPress={showNotifications}
+              activeOpacity={0.7}
+            >
               <Feather name="bell" size={18} color={colors.foreground} />
             </TouchableOpacity>
             <TouchableOpacity
@@ -76,26 +114,34 @@ export default function DiscoverScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {searchOpen && (
+          <View style={[styles.searchRow, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <Feather name="search" size={16} color={colors.mutedForeground} />
+            <TextInput
+              autoFocus
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search runs, organizers, areas…"
+              placeholderTextColor={colors.mutedForeground}
+              style={[styles.searchInput, { color: colors.foreground }]}
+              returnKeyType="search"
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Feather name="x" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Map fills all remaining space */}
-      <View
-        style={{ flex: 1, position: 'relative' }}
-        onLayout={e => {
-          const { width, height } = e.nativeEvent.layout;
-          if (width > 10 && height > 10) {
-            setMapSize({ width, height });
-          }
-        }}
-      >
-        {mapSize.width > 0 && (
-          <MapCanvas
-            events={filteredEvents}
-            onAreaPress={handleAreaPress}
-            canvasWidth={mapSize.width}
-            canvasHeight={mapSize.height}
-          />
-        )}
+      <View style={{ flex: 1, position: 'relative' }}>
+        <MapWebView
+          events={filteredEvents}
+          onAreaPress={handleAreaPress}
+        />
 
         {/* Filter chips float on top of map */}
         <View style={styles.filterOverlay} pointerEvents="box-none">
@@ -139,6 +185,12 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 19,
     alignItems: 'center', justifyContent: 'center', borderWidth: 1,
   },
+  searchRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginTop: 12, paddingHorizontal: 14, height: 44,
+    borderRadius: 12, borderWidth: 1,
+  },
+  searchInput: { flex: 1, fontSize: 14, paddingVertical: 0 },
   filterOverlay: {
     position: 'absolute',
     top: 0,

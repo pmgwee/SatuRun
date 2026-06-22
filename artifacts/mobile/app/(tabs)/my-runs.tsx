@@ -5,9 +5,12 @@ import { FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventCard } from '@/components/EventCard';
 import { useApp } from '@/context/AppContext';
-import { ACHIEVEMENTS, CATEGORY_GRADIENTS, PAST_RUNS } from '@/data/mockData';
+import { ACHIEVEMENTS, CATEGORY_GRADIENTS, PAST_RUNS, type RunningEvent } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
 import type { StravaRun } from '@/types/strava';
+import { ACCENT_ON_DARK, CARD_SHADOW } from '@/constants/brand';
+import { useRouter } from 'expo-router';
+import { QRModal } from '@/components/QRModal';
 
 interface CountdownValues { d: number; h: number; m: number }
 
@@ -36,7 +39,7 @@ function Countdown({ date, time }: { date: string; time: string }) {
       {([['d', 'DAYS'], ['h', 'HRS'], ['m', 'MIN']] as const).map(([key, label], i) => (
         <React.Fragment key={label}>
           <View style={styles.countUnit}>
-            <Text style={[styles.countNum, { color: colors.primary }]}>
+            <Text style={[styles.countNum, { color: ACCENT_ON_DARK }]}>
               {String(left[key]).padStart(2, '0')}
             </Text>
             <Text style={[styles.countLabel, { color: colors.mutedForeground }]}>{label}</Text>
@@ -64,7 +67,9 @@ export default function MyRunsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { events, savedEventIds, joinedEventIds, stravaRuns } = useApp();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>('upcoming');
+  const [qrEvent, setQrEvent] = useState<RunningEvent | null>(null);
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   const now = Date.now();
@@ -207,9 +212,25 @@ export default function MyRunsScreen() {
                 </View>
                 <Countdown date={event.date} time={event.time} />
                 <View style={styles.upcomingActions}>
+                  <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/chat/[runId]', params: { runId: event.id } })}
+                    style={styles.upcomingBtn}
+                    activeOpacity={0.85}
+                  >
+                    <Feather name="message-circle" size={13} color={ACCENT_ON_DARK} />
+                    <Text style={styles.upcomingBtnText}>Group Chat</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setQrEvent(event)}
+                    style={styles.upcomingBtn}
+                    activeOpacity={0.85}
+                  >
+                    <Feather name="maximize" size={13} color={ACCENT_ON_DARK} />
+                    <Text style={styles.upcomingBtnText}>Check-in</Text>
+                  </TouchableOpacity>
                   {event.hasVoucher && (
                     <View style={styles.voucherChip}>
-                      <Feather name="gift" size={11} color="#CCFF00" />
+                      <Feather name="gift" size={11} color={ACCENT_ON_DARK} />
                       <Text style={styles.voucherChipText}>Voucher</Text>
                     </View>
                   )}
@@ -243,8 +264,8 @@ export default function MyRunsScreen() {
                   style={[
                     styles.achievement,
                     {
-                      backgroundColor: a.unlocked ? 'rgba(204,255,0,0.07)' : colors.card,
-                      borderColor: a.unlocked ? 'rgba(204,255,0,0.25)' : colors.border,
+                      backgroundColor: a.unlocked ? colors.primarySoft : colors.card,
+                      borderColor: a.unlocked ? colors.primaryBorder : colors.border,
                     },
                   ]}
                 >
@@ -265,7 +286,7 @@ export default function MyRunsScreen() {
                     styles.pastIcon,
                     r.source === 'strava'
                       ? { backgroundColor: 'rgba(252,76,2,0.1)' }
-                      : { backgroundColor: 'rgba(204,255,0,0.08)' },
+                      : { backgroundColor: colors.primarySoft },
                   ]}
                 >
                   <Feather
@@ -290,7 +311,7 @@ export default function MyRunsScreen() {
                     styles.pastDist,
                     r.source === 'strava'
                       ? { backgroundColor: 'rgba(252,76,2,0.1)' }
-                      : { backgroundColor: 'rgba(204,255,0,0.08)' },
+                      : { backgroundColor: colors.primarySoft },
                   ]}
                 >
                   <Text
@@ -307,6 +328,8 @@ export default function MyRunsScreen() {
           </View>
         </ScrollView>
       )}
+
+      <QRModal event={qrEvent} visible={!!qrEvent} onClose={() => setQrEvent(null)} />
     </View>
   );
 }
@@ -323,7 +346,7 @@ const styles = StyleSheet.create({
   emptyIcon: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   emptyTitle: { fontSize: 18, fontWeight: '700' },
   emptyText: { fontSize: 14, textAlign: 'center' },
-  upcomingCard: { borderRadius: 18, padding: 20, marginBottom: 16, borderWidth: 1 },
+  upcomingCard: { ...CARD_SHADOW, borderRadius: 18, padding: 20, marginBottom: 16, borderWidth: 1 },
   upcomingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   catBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
   catBadgeText: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', letterSpacing: 0.8 },
@@ -336,22 +359,28 @@ const styles = StyleSheet.create({
   countNum: { fontSize: 28, fontWeight: '700' },
   countLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.2, marginTop: 2 },
   countSep: { fontSize: 24, fontWeight: '300', marginHorizontal: 2, marginBottom: 14 },
-  upcomingActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  upcomingActions: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  upcomingBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20,
+    borderWidth: 1, borderColor: 'rgba(194,224,160,0.4)', backgroundColor: 'rgba(194,224,160,0.14)',
+  },
+  upcomingBtnText: { color: ACCENT_ON_DARK, fontSize: 11, fontWeight: '600' },
   voucherChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(204,255,0,0.3)', backgroundColor: 'rgba(204,255,0,0.08)',
+    borderWidth: 1, borderColor: 'rgba(194,224,160,0.4)', backgroundColor: 'rgba(194,224,160,0.14)',
   },
-  voucherChipText: { color: '#CCFF00', fontSize: 11, fontWeight: '500' },
+  voucherChipText: { color: ACCENT_ON_DARK, fontSize: 11, fontWeight: '500' },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statBox: { flex: 1, borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 4 },
+  statBox: { ...CARD_SHADOW, flex: 1, borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 4 },
   statNum: { fontSize: 28, fontWeight: '700' },
   statLabel: { fontSize: 11, fontWeight: '500' },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
   achievementsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
   achievement: { borderRadius: 12, borderWidth: 1, padding: 14, alignItems: 'center', gap: 8, width: '47%' },
   achievementTitle: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
-  pastRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
+  pastRow: { ...CARD_SHADOW, flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 8 },
   pastIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   pastTitle: { fontSize: 13, fontWeight: '600' },
   pastMeta: { fontSize: 11 },

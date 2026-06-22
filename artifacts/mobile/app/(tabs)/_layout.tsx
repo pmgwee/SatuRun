@@ -15,12 +15,16 @@ function NativeTabLayout() {
         <Icon sf={{ default: "map", selected: "map.fill" }} />
         <Label>Discover</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="community">
+        <Icon sf={{ default: "square.grid.2x2", selected: "square.grid.2x2.fill" }} />
+        <Label>Community</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="rewards">
         <Icon sf={{ default: "gift", selected: "gift.fill" }} />
         <Label>Rewards</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="my-runs">
-        <Icon sf={{ default: "calendar", selected: "calendar.fill" }} />
+        <Icon sf={{ default: "calendar", selected: "calendar.circle.fill" }} />
         <Label>My Runs</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="leaderboard">
@@ -71,6 +75,18 @@ function ClassicTabLayout() {
               <SymbolView name="map" tintColor={color} size={22} />
             ) : (
               <Feather name="map-pin" size={20} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: "Community",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="square.grid.2x2" tintColor={color} size={22} />
+            ) : (
+              <Feather name="grid" size={20} color={color} />
             ),
         }}
       />
