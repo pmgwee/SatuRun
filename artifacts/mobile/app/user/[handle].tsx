@@ -108,7 +108,10 @@ export default function UserProfileScreen() {
                 {following ? 'Following' : 'Follow'}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconBtn, { borderColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '/dm/[handle]', params: { handle } })}
+              style={[styles.iconBtn, { borderColor: colors.border }]}
+            >
               <Feather name="message-circle" size={18} color={colors.foreground} />
             </TouchableOpacity>
           </View>
