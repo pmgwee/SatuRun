@@ -18,7 +18,9 @@ import { Avatar } from '@/components/Avatar';
 import { MediaCarousel } from '@/components/MediaCarousel';
 import { useApp } from '@/context/AppContext';
 import { useColors } from '@/hooks/useColors';
-import { STRAVA_ORANGE } from '@/constants/brand';
+import { Image } from 'expo-image';
+
+const STRAVA_LOGO = require('../../assets/strava.png');
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - +new Date(iso);
@@ -140,9 +142,7 @@ export default function PostDetailScreen() {
           {post.runStats && (
             <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.statsHeader}>
-                <View style={[styles.stravaBadge, { backgroundColor: STRAVA_ORANGE }]}>
-                  <Feather name="activity" size={12} color="#fff" />
-                </View>
+                <Image source={STRAVA_LOGO} style={styles.stravaBadge} contentFit="cover" />
                 <Text style={[styles.statsSource, { color: colors.foreground }]}>
                   {post.runStats.source} Activity
                 </Text>
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   caption: { fontSize: 14, lineHeight: 21 },
   statsCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 12 },
   statsHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stravaBadge: { width: 22, height: 22, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  stravaBadge: { width: 22, height: 22, borderRadius: 6 },
   statsSource: { fontSize: 13, fontWeight: '700' },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
   statCell: { flex: 1, alignItems: 'flex-start', gap: 2 },

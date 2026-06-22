@@ -8,7 +8,9 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Avatar } from '@/components/Avatar';
 import { useApp } from '@/context/AppContext';
 import { useColors } from '@/hooks/useColors';
-import { CARD_SHADOW, STRAVA_ORANGE } from '@/constants/brand';
+import { CARD_SHADOW } from '@/constants/brand';
+
+const STRAVA_LOGO = require('../assets/strava.png');
 import type { CommunityPost } from '@/data/communityData';
 
 // Clamp cover height so a very tall/wide image never breaks the masonry rhythm.
@@ -67,7 +69,7 @@ export function PostCard({ post, width }: PostCardProps) {
         )}
         {post.runStats && (
           <View style={styles.statPill}>
-            <View style={styles.stravaDot} />
+            <Image source={STRAVA_LOGO} style={styles.stravaIcon} contentFit="cover" />
             <Text style={styles.statPillText}>
               {post.runStats.distanceKm.toFixed(1)} km · {post.runStats.pace.replace(' /km', '/km')}
             </Text>
@@ -145,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  stravaDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: STRAVA_ORANGE },
+  stravaIcon: { width: 14, height: 14, borderRadius: 3 },
   statPillText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   body: { padding: 10, gap: 8 },
   title: { fontSize: 13, fontWeight: '600', lineHeight: 18 },

@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -22,7 +23,7 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/context/AppContext';
-import { CATEGORY_GRADIENTS, RunningEvent } from '@/data/mockData';
+import { CATEGORY_GRADIENTS, RunningEvent, getOrganizerLogo } from '@/data/mockData';
 import { useColors } from '@/hooks/useColors';
 import { ACCENT_ON_DARK } from '@/constants/brand';
 
@@ -94,7 +95,11 @@ function EventDetailView({
           <Text style={styles.detailTitle}>{event.title}</Text>
           <View style={styles.orgRow}>
             <View style={[styles.orgAvatar, { backgroundColor: event.organizerColor }]}>
-              <Text style={styles.orgAvatarText}>{event.organizerInitials}</Text>
+              {getOrganizerLogo(event.organizerHandle) ? (
+                <Image source={getOrganizerLogo(event.organizerHandle)!} style={styles.orgAvatarImg} contentFit="cover" />
+              ) : (
+                <Text style={styles.orgAvatarText}>{event.organizerInitials}</Text>
+              )}
             </View>
             <Text style={styles.orgName}>{event.organizer}</Text>
             {event.isVerified && <Feather name="check-circle" size={13} color={ACCENT_ON_DARK} style={{ marginLeft: 4 }} />}
@@ -294,7 +299,11 @@ export function EventBottomSheet({ events, neighborhood, onClose }: EventBottomS
 
                       <View style={styles.eventMeta}>
                         <View style={[styles.miniAvatar, { backgroundColor: event.organizerColor }]}>
-                          <Text style={styles.miniAvatarText}>{event.organizerInitials}</Text>
+                          {getOrganizerLogo(event.organizerHandle) ? (
+                            <Image source={getOrganizerLogo(event.organizerHandle)!} style={styles.miniAvatarImg} contentFit="cover" />
+                          ) : (
+                            <Text style={styles.miniAvatarText}>{event.organizerInitials}</Text>
+                          )}
                         </View>
                         <Text style={[styles.eventOrg, { color: colors.mutedForeground }]} numberOfLines={1}>
                           {event.organizer}
@@ -374,8 +383,9 @@ const styles = StyleSheet.create({
   eventDist: { fontSize: 12, fontWeight: '700' },
   eventTitle: { fontSize: 14, fontWeight: '700', lineHeight: 20, marginBottom: 6 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 },
-  miniAvatar: { width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  miniAvatar: { width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   miniAvatarText: { color: '#fff', fontSize: 6, fontWeight: '700' },
+  miniAvatarImg: { width: '100%', height: '100%' },
   eventOrg: { fontSize: 11, flex: 1 },
   eventTime: { fontSize: 11 },
   eventRowBottom: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -395,8 +405,9 @@ const styles = StyleSheet.create({
   categoryPillText: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', letterSpacing: 0.8 },
   detailTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 10, lineHeight: 24 },
   orgRow: { flexDirection: 'row', alignItems: 'center' },
-  orgAvatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  orgAvatar: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 8, overflow: 'hidden' },
   orgAvatarText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  orgAvatarImg: { width: '100%', height: '100%' },
   orgName: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '500' },
   detailBody: { padding: 20 },
   statsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
