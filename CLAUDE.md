@@ -1,8 +1,12 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # SatuRun (PACE) — Claude Code Project Guide
 
 ## Overview
 
-SatuRun (PACE) is a luxury running community mobile app for Malaysia — a mobile-first running event discovery and community platform with a dark luxury aesthetic. Originally built with Replit AI, now developed locally with VS Code + Claude Code.
+SatuRun (PACE) is a running community mobile app for Malaysia — a mobile-first running event discovery and community platform. Originally built with Replit AI, now developed locally with VS Code + Claude Code. The mobile app is currently **demo/mock-data driven**: screens read from local mock data files (`artifacts/mobile/data/`) and AsyncStorage, not the API server or database (the Drizzle schema is still empty).
 
 ## Tech Stack
 
@@ -83,28 +87,46 @@ Required env vars (see `.env.example`):
 ## Mobile App Architecture
 
 - **Entry**: `expo-router/entry` (file-based routing via Expo Router v6)
-- **Tabs** (5 tabs in `artifacts/mobile/app/(tabs)/`):
-  - `index.tsx` → Discover (map view with SVG KL map)
-  - `saved.tsx` → Saved events
-  - `my-runs.tsx` → My Runs
+- **Tabs** (in `artifacts/mobile/app/(tabs)/`):
+  - `index.tsx` → Discover (Leaflet map via WebView)
+  - `community.tsx` → Community feed (posts, comments, likes)
+  - `rewards.tsx` → Rewards (points, streak, missions, vouchers)
   - `leaderboard.tsx` → Trending
+  - `my-runs.tsx` → My Runs (also hosts the old "Saved" content)
   - `profile.tsx` → Organizer
-- **State**: `AppContext.tsx` manages events, saved/joined IDs, user profile
+  - `saved.tsx` exists but is **hidden** (`href: null`) — its content moved into My Runs
+- **Stack routes** (outside tabs): `chat/[runId].tsx` (per-run group chat), `dm/[handle].tsx` (direct messages), `post/create.tsx` + `post/[id].tsx` (community posts), `user/[handle].tsx` (author profile)
+- **State**: `AppContext.tsx` is the single global store — events, saved/joined IDs, user profile, rewards (points/streak/missions/vouchers), Strava connection + runs, and the community feed (posts/comments/likes). `ThemeContext.tsx` holds the light/dark palette and persists the choice.
+- **Tab layout**: `_layout.tsx` renders `NativeTabs` when `isLiquidGlassAvailable()` (iOS 26), otherwise a classic `Tabs` fallback. Adding/removing a tab means editing **both** layouts.
 - **Persistence**: `@react-native-async-storage/async-storage`
+
+## Data Layer (mock-first)
+
+The app does not call the API server yet. Screen data comes from `artifacts/mobile/data/`:
+
+- `mockData.ts` — running events, KL neighborhood coordinates (`coordsForNeighborhood`, `KL_CENTER`), mock Strava runs
+- `communityData.ts` — initial posts + comments
+- `rewardsData.ts` — missions, voucher templates, check-in rewards
+- `dmData.ts` — direct-message threads
+- `types/strava.ts` — Strava connection/run types
+
+Strava is mocked via `hooks/useStrava.ts`; run chat via `hooks/useRunChat.ts`. When wiring real data, replace these mock sources with the generated React Query hooks from `@workspace/api-client-react`.
 
 ## Design Identity
 
-- **Theme**: Dark luxury — background `#050505`, accent `#CCFF00` (lime green)
+- **Theme**: Matcha green, **light by default** with a dark mode. Palettes live in `context/ThemeContext.tsx` (matcha `#7FA862` light / `#A8C686` dark). Never hardcode colors in screens — read them via `useColors()` (`hooks/useColors.ts`) or `useTheme()` so light/dark both work.
 - **Typography**: Inter font via `@expo-google-fonts/inter`
-- **KL Map**: SVG-based map of Kuala Lumpur neighborhoods in `MapCanvas.tsx`
+- **KL Map**: Leaflet map rendered inside a WebView (`components/MapWebView.tsx`) using free OpenStreetMap/CARTO tiles — **no API key**. Pins are clustered per neighborhood from `coordsForNeighborhood` in `mockData.ts`.
 - **Animations**: `react-native-reanimated` + `expo-haptics` for bottom sheets and modals
 
 ## Key Files
 
-- `artifacts/mobile/app/(tabs)/_layout.tsx` — Tab navigator (NativeTabs on iOS 26, classic fallback)
-- `artifacts/mobile/components/MapCanvas.tsx` — SVG KL map with neighborhood coordinates
+- `artifacts/mobile/app/(tabs)/_layout.tsx` — Tab navigator (NativeTabs on iOS 26, classic `Tabs` fallback)
+- `artifacts/mobile/components/MapWebView.tsx` — Leaflet/WebView KL map (self-contained HTML, OSM tiles)
 - `artifacts/mobile/components/EventBottomSheet.tsx` — Animated event detail sheet
-- `artifacts/mobile/context/AppContext.tsx` — Global app state
+- `artifacts/mobile/context/AppContext.tsx` — Global app state (events, rewards, Strava, community)
+- `artifacts/mobile/context/ThemeContext.tsx` — Light/dark matcha palettes + persistence
+- `artifacts/mobile/data/` — Mock data sources backing the UI (see Data Layer)
 - `lib/api-spec/openapi.yaml` — OpenAPI 3.1 spec (source of truth for API contracts)
 - `lib/db/src/schema/index.ts` — Drizzle ORM schema (currently empty, tables TBD)
 - `lib/api-client-react/custom-fetch.ts` — Cross-platform fetch wrapper (RN + web)
@@ -132,7 +154,10 @@ Required env vars (see `.env.example`):
 - **pnpm required**: The `preinstall` script blocks npm/yarn usage
 - **esbuild**: Build scripts need approval via `allowBuilds` in `pnpm-workspace.yaml`
 - **React version**: Pinned to `19.1.0` because Expo requires this exact version
-- **Database schema**: Still empty — no tables defined yet in Drizzle ORM
+- **Database schema**: Still empty — no tables defined yet in Drizzle ORM. The mobile app runs entirely on mock data + AsyncStorage.
+- **No test runner**: There is no Jest/Vitest setup yet. "Verifying" a change means `pnpm run typecheck` plus running the app — there are no unit tests to run.
+- **Tabs are defined twice**: `_layout.tsx` has both `NativeTabLayout` and `ClassicTabLayout`. Any tab change must be made in both.
+- **Colors are theme-driven**: Hardcoded hex in screens breaks dark mode. Always go through `useColors()` / `useTheme()`.
 - **React Compiler**: Enabled via experiment flag in `app.json`
 
 ## Windows Development Notes
