@@ -120,7 +120,7 @@ Required env vars (see `.env.example`):
 
 ### Using Expo Go on Physical Phone
 1. Install **Expo Go** app on your phone
-2. Run: `npx expo start --tunnel`
+2. Run: `pnpm --filter @workspace/mobile run dev -- --tunnel`
 3. Scan the QR code with your phone camera
 
 ### iOS Simulator (macOS only)
